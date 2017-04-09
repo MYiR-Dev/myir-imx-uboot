@@ -194,6 +194,13 @@ config TARGET_MYS_IMX6ULL_14X14
 	select DM
 	select DM_THERMAL
 
+config TARGET_MYS_IMX6UL_14X14
+	bool "Support MYiR mys-imx6ul_14x14"
+	select MX6UL
+	select DM
+	select DM_THERMAL
+	select SUPPORT_SPL
+
 config TARGET_SECOMX6
 	bool "secomx6 boards"
 
@@ -244,6 +251,7 @@ source "board/freescale/mx6ul_14x14_lpddr2_arm2/Kconfig"
 source "board/freescale/mx6ull_ddr3_arm2/Kconfig"
 source "board/freescale/mx6ullevk/Kconfig"
 source "board/myir/mys_imx6ull/Kconfig"
+source "board/myir/mys_imx6ul_14x14/Kconfig"
 source "board/gateworks/gw_ventana/Kconfig"
 source "board/kosagi/novena/Kconfig"
 source "board/seco/Kconfig"

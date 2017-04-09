@@ -1,0 +1,12 @@
+if TARGET_MYS_IMX6UL_14X14 || TARGET_MYS_IMX6UL_9X9
+
+config SYS_BOARD
+	default "mys_imx6ul_14x14"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "mys_imx6ul_14x14"
+
+endif
