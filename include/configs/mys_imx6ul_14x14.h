@@ -35,7 +35,7 @@
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define CONFIG_BOOTARGS_CMA_SIZE   "cma=96M "
 #else
-#define PHYS_SDRAM_SIZE		SZ_512M
+#define PHYS_SDRAM_SIZE		SZ_256M
 #define CONFIG_BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
 #undef CONFIG_LDO_BYPASS_CHECK
@@ -328,11 +328,11 @@
 #ifdef CONFIG_CMD_NET
 #define CONFIG_FEC_MXC
 #define CONFIG_MII
-#define CONFIG_FEC_ENET_DEV		1
+#define CONFIG_FEC_ENET_DEV		0
 
 #if (CONFIG_FEC_ENET_DEV == 0)
 #define IMX_FEC_BASE			ENET_BASE_ADDR
-#define CONFIG_FEC_MXC_PHYADDR          0x2
+#define CONFIG_FEC_MXC_PHYADDR          0x0
 #define CONFIG_FEC_XCV_TYPE             RMII
 #elif (CONFIG_FEC_ENET_DEV == 1)
 #define IMX_FEC_BASE			ENET2_BASE_ADDR
@@ -342,7 +342,7 @@
 #define CONFIG_ETHPRIME			"FEC"
 
 #define CONFIG_PHYLIB
-#define CONFIG_PHY_MICREL
+#define CONFIG_PHY_SMSC
 #endif
 
 #define CONFIG_IMX_THERMAL
