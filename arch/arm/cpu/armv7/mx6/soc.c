@@ -145,7 +145,7 @@ u32 get_cpu_speed_grade_hz(void)
 			return 0;
 	}
 
-	if (is_mx6ull()) {
+	if (is_cpu_type(MXC_CPU_MX6ULL)) {
 		if (val == OCOTP_CFG3_SPEED_528MHZ)
                        return 528000000;
 		else if (val == OCOTP_CFG3_SPEED_792MHZ)
