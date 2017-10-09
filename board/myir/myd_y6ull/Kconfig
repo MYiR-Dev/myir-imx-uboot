@@ -1,0 +1,12 @@
+if TARGET_MYD_Y6ULL_14X14 || TARGET_MX6ULL_9X9_EVK
+
+config SYS_BOARD
+	default "myd_y6ull"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "myd_y6ull"
+
+endif
