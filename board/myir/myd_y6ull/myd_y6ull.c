@@ -344,7 +344,7 @@ static iomux_v3_cfg_t const usdhc1_pads[] = {
 	/* VSELECT */
 	//MX6_PAD_GPIO1_IO05__USDHC1_VSELECT | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	/* CD */
-	//MX6_PAD_UART1_RTS_B__GPIO1_IO19 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_UART1_RTS_B__GPIO1_IO19 | MUX_PAD_CTRL(NO_PAD_CTRL),
 	/* RST_B */
 	//MX6_PAD_GPIO1_IO09__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
@@ -467,8 +467,7 @@ int board_mmc_getcd(struct mmc *mmc)
 
 	switch (cfg->esdhc_base) {
 	case USDHC1_BASE_ADDR:
-		//ret = !gpio_get_value(USDHC1_CD_GPIO);
-        ret = 1;
+		ret = !gpio_get_value(USDHC1_CD_GPIO);
 		break;
 	case USDHC2_BASE_ADDR:
 #if defined(CONFIG_MX6ULL_EVK_EMMC_REWORK)
@@ -554,7 +553,7 @@ int board_mmc_init(bd_t *bis)
 		case 0:
 			imx_iomux_v3_setup_multiple_pads(
 				usdhc1_pads, ARRAY_SIZE(usdhc1_pads));
-			//gpio_direction_input(USDHC1_CD_GPIO);
+			gpio_direction_input(USDHC1_CD_GPIO);
 			usdhc_cfg[0].sdhc_clk = mxc_get_clock(MXC_ESDHC_CLK);
 
             /* SDCard not use VSELECT
@@ -687,7 +686,7 @@ static iomux_v3_cfg_t const fec1_pads[] = {
 	MX6_PAD_ENET1_RX_ER__ENET1_RX_ER | MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6_PAD_ENET1_RX_EN__ENET1_RX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
     /* PHY Reset */
-    MX6_PAD_SNVS_TAMPER6__GPIO5_IO06 | MUX_PAD_CTRL(NO_PAD_CTRL),
+    MX6_PAD_SNVS_TAMPER9__GPIO5_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static iomux_v3_cfg_t const fec2_pads[] = {
@@ -712,9 +711,9 @@ static void setup_iomux_fec(int fec_id)
 						 ARRAY_SIZE(fec1_pads));
 
         /* Reset the PHY */
-        gpio_direction_output(IMX_GPIO_NR(5, 6) , 0);
+        gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
         udelay(500);
-        gpio_direction_output(IMX_GPIO_NR(5, 6) , 1);
+        gpio_direction_output(IMX_GPIO_NR(5, 9) , 1);
     }else
 		imx_iomux_v3_setup_multiple_pads(fec2_pads,
 						 ARRAY_SIZE(fec2_pads));
