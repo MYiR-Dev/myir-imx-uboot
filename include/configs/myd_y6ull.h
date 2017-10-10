@@ -253,9 +253,11 @@
 #define CONFIG_ENV_IS_IN_MMC
 #endif
 
-#define CONFIG_SYS_MMC_ENV_DEV		1   /* USDHC2 */
+#ifdef CONFIG_SYS_BOOT_SD
+#define CONFIG_SYS_MMC_ENV_DEV		0   /* USDHC1 */
 #define CONFIG_SYS_MMC_ENV_PART		0	/* user area */
-#define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
+#define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* USDHC1 */
+#endif
 
 #define CONFIG_CMD_BMODE
 
