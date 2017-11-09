@@ -851,6 +851,8 @@ static iomux_v3_cfg_t const wifi_pwr_pads[] = {
 
 static iomux_v3_cfg_t const lte_pwr_pads[] = {
 	MX6_PAD_SNVS_TAMPER5__GPIO5_IO05 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_SNVS_TAMPER8__GPIO5_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_NAND_CE1_B__GPIO4_IO14 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 
@@ -871,17 +873,24 @@ int board_init(void)
 	iox74lv_init();
 
 	/* WiFi Power */
-    imx_iomux_v3_setup_multiple_pads(wifi_pwr_pads, ARRAY_SIZE(wifi_pwr_pads));
+	imx_iomux_v3_setup_multiple_pads(wifi_pwr_pads, ARRAY_SIZE(wifi_pwr_pads));
 	gpio_direction_output(IMX_GPIO_NR(1, 10) , 0);
-	
+
 	/* WiFi Reset */
-    gpio_direction_output(IMX_GPIO_NR(4, 16) , 0);
+	gpio_direction_output(IMX_GPIO_NR(4, 16) , 0);
 	udelay(3000);
-    gpio_direction_output(IMX_GPIO_NR(4, 16) , 1);
-	
-    /* LTE module Power */
-    imx_iomux_v3_setup_multiple_pads(lte_pwr_pads, ARRAY_SIZE(lte_pwr_pads));
+	gpio_direction_output(IMX_GPIO_NR(4, 16) , 1);
+
+	/* LTE module */
+	imx_iomux_v3_setup_multiple_pads(lte_pwr_pads, ARRAY_SIZE(lte_pwr_pads));
+	/* LTE wakeup */
+	gpio_direction_output(IMX_GPIO_NR(5, 8) , 1);
+	/* LTE power */
 	gpio_direction_output(IMX_GPIO_NR(5, 5) , 1);
+	/* LTE reset */
+	gpio_direction_output(IMX_GPIO_NR(4, 14) , 1);
+	udelay(150000);
+	gpio_direction_output(IMX_GPIO_NR(4, 14) , 0);
 
 #ifdef CONFIG_SYS_I2C_MXC
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
