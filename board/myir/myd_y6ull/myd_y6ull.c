@@ -855,6 +855,9 @@ static iomux_v3_cfg_t const lte_pwr_pads[] = {
 	MX6_PAD_NAND_CE1_B__GPIO4_IO14 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
+static iomux_v3_cfg_t const lcd_pwr_pads[] = {
+	MX6_PAD_LCD_RESET__GPIO3_IO04 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
 
 int board_early_init_f(void)
 {
@@ -880,6 +883,10 @@ int board_init(void)
 	gpio_direction_output(IMX_GPIO_NR(4, 16) , 0);
 	udelay(3000);
 	gpio_direction_output(IMX_GPIO_NR(4, 16) , 1);
+
+	/* LCD Power */
+	imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
+	gpio_direction_output(IMX_GPIO_NR(3, 4) , 1);
 
 	/* LTE module */
 	imx_iomux_v3_setup_multiple_pads(lte_pwr_pads, ARRAY_SIZE(lte_pwr_pads));
