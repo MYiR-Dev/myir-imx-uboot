@@ -93,7 +93,7 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #ifdef CONFIG_SYS_BOOT_NAND
-#define CONFIG_MFG_NAND_PARTITION "mtdparts=gpmi-nand:64m(boot),16m(kernel),16m(dtb),-(rootfs) "
+#define CONFIG_MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),10m(kernel),1m(dtb),-(rootfs) "
 #else
 #define CONFIG_MFG_NAND_PARTITION ""
 #endif
@@ -123,9 +123,9 @@
 	"bootargs=console=ttymxc0,115200 ubi.mtd=3 "  \
 		"root=ubi0:rootfs rootfstype=ubifs "		     \
 		CONFIG_BOOTARGS_CMA_SIZE \
-		"mtdparts=gpmi-nand:64m(boot),16m(kernel),16m(dtb),-(rootfs)\0"\
-	"bootcmd=nand read ${loadaddr} 0x4000000 0x800000;"\
-		"nand read ${fdt_addr} 0x5000000 0x100000;"\
+		"mtdparts=gpmi-nand:5m(boot),10m(kernel),1m(dtb),-(rootfs)\0"\
+	"bootcmd=nand read ${loadaddr} 0x500000 0xA00000;"\
+		"nand read ${fdt_addr} 0xF00000 0x100000;"\
 		"bootz ${loadaddr} - ${fdt_addr}\0"
 
 #else
@@ -198,8 +198,8 @@
 			"if test $fdt_file = undefined; then " \
 				"if test $board_name = EVK && test $board_rev = 9X9; then " \
 					"setenv fdt_file imx6ul-9x9-evk.dtb; fi; " \
-				"if test $board_name = EVK && test $board_rev = 14X14; then " \
-					"setenv fdt_file imx6ul-14x14-evk.dtb; fi; " \
+				"if test $board_name = MYD-Y6UL && test $board_rev = 14X14; then " \
+					"setenv fdt_file myd-y6ull-gpmi-weim.dtb; fi; " \
 				"if test $fdt_file = undefined; then " \
 					"echo WARNING: Could not determine dtb to use; fi; " \
 			"fi;\0" \
@@ -256,9 +256,11 @@
 #define CONFIG_ENV_IS_IN_MMC
 #endif
 
-#define CONFIG_SYS_MMC_ENV_DEV		0   /* USDHC2 */
+#ifdef CONFIG_SYS_BOOT_SD
+#define CONFIG_SYS_MMC_ENV_DEV		0   /* USDHC1 */
 #define CONFIG_SYS_MMC_ENV_PART		0	/* user area */
-#define CONFIG_MMCROOT			"/dev/mmcb0k1p2"  /* USDHC2 */
+#define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* USDHC1 */
+#endif
 
 #define CONFIG_CMD_BMODE
 
