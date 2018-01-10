@@ -685,8 +685,9 @@ static iomux_v3_cfg_t const fec1_pads[] = {
 	MX6_PAD_ENET1_RX_DATA1__ENET1_RDATA01 | MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6_PAD_ENET1_RX_ER__ENET1_RX_ER | MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6_PAD_ENET1_RX_EN__ENET1_RX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
-    /* PHY Reset */
-    MX6_PAD_SNVS_TAMPER9__GPIO5_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+
+	/* PHY Reset */
+	MX6_PAD_SNVS_TAMPER9__GPIO5_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static iomux_v3_cfg_t const fec2_pads[] = {
@@ -702,6 +703,9 @@ static iomux_v3_cfg_t const fec2_pads[] = {
 	MX6_PAD_ENET2_RX_DATA1__ENET2_RDATA01 | MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6_PAD_ENET2_RX_EN__ENET2_RX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6_PAD_ENET2_RX_ER__ENET2_RX_ER | MUX_PAD_CTRL(ENET_PAD_CTRL),
+
+	/* PHY Reset */
+	MX6_PAD_SNVS_TAMPER6__GPIO5_IO06 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static void setup_iomux_fec(int fec_id)
@@ -709,22 +713,32 @@ static void setup_iomux_fec(int fec_id)
 	if (fec_id == 0){
 		imx_iomux_v3_setup_multiple_pads(fec1_pads,
 						 ARRAY_SIZE(fec1_pads));
-
-        /* Reset the PHY */
-        gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
-        udelay(500);
-        gpio_direction_output(IMX_GPIO_NR(5, 9) , 1);
-    }else
+		gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
+		udelay(100);
+		gpio_set_value(IMX_GPIO_NR(5, 9) , 1);
+		udelay(10000);
+	}else{
 		imx_iomux_v3_setup_multiple_pads(fec2_pads,
 						 ARRAY_SIZE(fec2_pads));
+		gpio_direction_output(IMX_GPIO_NR(5, 6) , 0);
+		udelay(100);
+		gpio_set_value(IMX_GPIO_NR(5, 6) , 1);
+		udelay(10000);
+	};
 }
 
 int board_eth_init(bd_t *bis)
 {
+	int ret;
+
 	setup_iomux_fec(CONFIG_FEC_ENET_DEV);
 
-	return fecmxc_initialize_multi(bis, CONFIG_FEC_ENET_DEV,
+	ret = fecmxc_initialize_multi(bis, CONFIG_FEC_ENET_DEV,
 				       CONFIG_FEC_MXC_PHYADDR, IMX_FEC_BASE);
+	if (ret)
+		printf("FEC%d MXC: %s failed\n", CONFIG_FEC_ENET_DEV, __func__);
+
+	return 0;
 }
 
 static int setup_fec(int fec_id)
@@ -759,7 +773,7 @@ static int setup_fec(int fec_id)
 
 int board_phy_config(struct phy_device *phydev)
 {
-	//phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x8190);
+	phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x8190);
 
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
