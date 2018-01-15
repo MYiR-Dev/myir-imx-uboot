@@ -252,15 +252,12 @@
 #define CONFIG_SYS_USE_NAND
 #define CONFIG_ENV_IS_IN_NAND
 #else
-#define CONFIG_FSL_QSPI
 #define CONFIG_ENV_IS_IN_MMC
 #endif
 
-#ifdef CONFIG_SYS_BOOT_SD
 #define CONFIG_SYS_MMC_ENV_DEV		0   /* USDHC1 */
 #define CONFIG_SYS_MMC_ENV_PART		0	/* user area */
 #define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* USDHC1 */
-#endif
 
 #define CONFIG_CMD_BMODE
 

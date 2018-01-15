@@ -341,12 +341,8 @@ static iomux_v3_cfg_t const usdhc1_pads[] = {
 	MX6_PAD_SD1_DATA2__USDHC1_DATA2 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_SD1_DATA3__USDHC1_DATA3 | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 
-	/* VSELECT */
-	MX6_PAD_GPIO1_IO05__USDHC1_VSELECT | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	/* CD */
 	MX6_PAD_UART1_RTS_B__GPIO1_IO19 | MUX_PAD_CTRL(NO_PAD_CTRL),
-	/* RST_B */
-	MX6_PAD_GPIO1_IO09__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 /*
@@ -374,6 +370,7 @@ static iomux_v3_cfg_t const usdhc2_emmc_pads[] = {
 	MX6_PAD_NAND_ALE__GPIO4_IO10 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 #else
+#if 0
 static iomux_v3_cfg_t const usdhc2_pads[] = {
 	MX6_PAD_NAND_RE_B__USDHC2_CLK | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_NAND_WE_B__USDHC2_CMD | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -395,6 +392,7 @@ static iomux_v3_cfg_t const usdhc2_dat3_pads[] = {
 	MX6_PAD_NAND_DATA03__USDHC2_DATA3 |
 	MUX_PAD_CTRL(USDHC_DAT3_CD_PAD_CTRL),
 };
+#endif
 #endif
 
 static void setup_iomux_uart(void)
@@ -435,7 +433,7 @@ static struct fsl_esdhc_cfg usdhc_cfg[2] = {
 #if defined(CONFIG_MX6UL_EVK_EMMC_REWORK)
 	{USDHC2_BASE_ADDR, 0, 8},
 #else
-	{USDHC2_BASE_ADDR, 0, 4},
+	//{USDHC2_BASE_ADDR, 0, 4},
 #endif
 };
 
@@ -473,6 +471,7 @@ int board_mmc_getcd(struct mmc *mmc)
 #if defined(CONFIG_MX6UL_EVK_EMMC_REWORK)
 		ret = 1;
 #else
+#if 0
 		imx_iomux_v3_setup_multiple_pads(usdhc2_cd_pads,
 						 ARRAY_SIZE(usdhc2_cd_pads));
 		gpio_direction_input(USDHC2_CD_GPIO);
@@ -485,6 +484,7 @@ int board_mmc_getcd(struct mmc *mmc)
 
 		imx_iomux_v3_setup_multiple_pads(usdhc2_dat3_pads,
 						 ARRAY_SIZE(usdhc2_dat3_pads));
+#endif
 #endif
 		break;
 	}
@@ -531,11 +531,8 @@ int board_mmc_init(bd_t *bis)
 	imx_iomux_v3_setup_multiple_pads(usdhc2_emmc_pads,
 					 ARRAY_SIZE(usdhc2_emmc_pads));
 #else
-	imx_iomux_v3_setup_multiple_pads(usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
+	//imx_iomux_v3_setup_multiple_pads(usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
 #endif
-	gpio_direction_output(USDHC2_PWR_GPIO, 0);
-	udelay(500);
-	gpio_direction_output(USDHC2_PWR_GPIO, 1);
 	usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC2_CLK);
 	return fsl_esdhc_initialize(bis, &usdhc_cfg[1]);
 #else
@@ -565,13 +562,10 @@ int board_mmc_init(bd_t *bis)
 				usdhc2_emmc_pads, ARRAY_SIZE(usdhc2_emmc_pads));
 #else
 #ifndef CONFIG_SYS_USE_NAND
-			imx_iomux_v3_setup_multiple_pads(
-				usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
+			//imx_iomux_v3_setup_multiple_pads(
+			//	usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
 #endif
 #endif
-			gpio_direction_output(USDHC2_PWR_GPIO, 0);
-			udelay(500);
-			gpio_direction_output(USDHC2_PWR_GPIO, 1);
 			usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC2_CLK);
 			break;
 		default:
@@ -683,7 +677,7 @@ static iomux_v3_cfg_t const fec1_pads[] = {
 	MX6_PAD_ENET1_RX_EN__ENET1_RX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
 
 	/* PHY Reset */
-	MX6_PAD_SNVS_TAMPER6__GPIO5_IO06 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_SNVS_TAMPER9__GPIO5_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static iomux_v3_cfg_t const fec2_pads[] = {
@@ -699,6 +693,9 @@ static iomux_v3_cfg_t const fec2_pads[] = {
 	MX6_PAD_ENET2_RX_DATA1__ENET2_RDATA01 | MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6_PAD_ENET2_RX_EN__ENET2_RX_EN | MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX6_PAD_ENET2_RX_ER__ENET2_RX_ER | MUX_PAD_CTRL(ENET_PAD_CTRL),
+
+	/* PHY Reset */
+	MX6_PAD_SNVS_TAMPER6__GPIO5_IO06 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 static void setup_iomux_fec(int fec_id)
@@ -706,13 +703,19 @@ static void setup_iomux_fec(int fec_id)
 	if (fec_id == 0){
 		imx_iomux_v3_setup_multiple_pads(fec1_pads,
 						 ARRAY_SIZE(fec1_pads));
-        /* Reset the PHY */
-        gpio_direction_output(IMX_GPIO_NR(5, 6) , 0);
-        udelay(500);
-        gpio_direction_output(IMX_GPIO_NR(5, 6) , 1);
-    }else
+		/* Reset the PHY */
+		gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
+		udelay(100);
+		gpio_set_value(IMX_GPIO_NR(5, 9) , 1);
+		udelay(10000);
+	}else{
 		imx_iomux_v3_setup_multiple_pads(fec2_pads,
 						 ARRAY_SIZE(fec2_pads));
+		gpio_direction_output(IMX_GPIO_NR(5, 6) , 0);
+		udelay(100);
+		gpio_set_value(IMX_GPIO_NR(5, 6) , 1);
+		udelay(10000);
+	};
 }
 
 int board_eth_init(bd_t *bis)
