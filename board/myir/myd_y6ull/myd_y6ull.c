@@ -373,7 +373,8 @@ static iomux_v3_cfg_t const usdhc2_emmc_pads[] = {
 	 */
 	MX6_PAD_NAND_ALE__GPIO4_IO10 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
-#else
+#endif
+#if 0
 static iomux_v3_cfg_t const usdhc2_pads[] = {
 	MX6_PAD_NAND_RE_B__USDHC2_CLK | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_NAND_WE_B__USDHC2_CMD | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -435,7 +436,7 @@ static struct fsl_esdhc_cfg usdhc_cfg[2] = {
 #if defined(CONFIG_MX6ULL_EVK_EMMC_REWORK)
 	{USDHC2_BASE_ADDR, 0, 8},
 #else
-	{USDHC2_BASE_ADDR, 0, 4},
+	//{USDHC2_BASE_ADDR, 0, 4},
 #endif
 };
 
@@ -473,6 +474,7 @@ int board_mmc_getcd(struct mmc *mmc)
 #if defined(CONFIG_MX6ULL_EVK_EMMC_REWORK)
 		ret = 1;
 #else
+#if 0
 		imx_iomux_v3_setup_multiple_pads(usdhc2_cd_pads,
 						 ARRAY_SIZE(usdhc2_cd_pads));
 		gpio_direction_input(USDHC2_CD_GPIO);
@@ -485,6 +487,7 @@ int board_mmc_getcd(struct mmc *mmc)
 
 		imx_iomux_v3_setup_multiple_pads(usdhc2_dat3_pads,
 						 ARRAY_SIZE(usdhc2_dat3_pads));
+#endif
 #endif
 		break;
 	}
@@ -530,7 +533,7 @@ int board_mmc_init(bd_t *bis)
 	imx_iomux_v3_setup_multiple_pads(usdhc2_emmc_pads,
 					 ARRAY_SIZE(usdhc2_emmc_pads));
 #else
-	imx_iomux_v3_setup_multiple_pads(usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
+	//imx_iomux_v3_setup_multiple_pads(usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
 #endif
     /*
 	gpio_direction_output(USDHC2_PWR_GPIO, 0);
@@ -568,8 +571,8 @@ int board_mmc_init(bd_t *bis)
 				usdhc2_emmc_pads, ARRAY_SIZE(usdhc2_emmc_pads));
 #else
 #ifndef CONFIG_SYS_USE_NAND
-			imx_iomux_v3_setup_multiple_pads(
-				usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
+			//imx_iomux_v3_setup_multiple_pads(
+			//	usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
 #endif
 #endif
             /*
