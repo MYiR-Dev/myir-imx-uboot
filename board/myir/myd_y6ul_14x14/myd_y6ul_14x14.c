@@ -877,9 +877,9 @@ int board_init(void)
 	/* Address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
-	imx_iomux_v3_setup_multiple_pads(iox_pads, ARRAY_SIZE(iox_pads));
+	//imx_iomux_v3_setup_multiple_pads(iox_pads, ARRAY_SIZE(iox_pads));
 
-	iox74lv_init();
+	//iox74lv_init();
 
 	/* WiFi Power */
 	imx_iomux_v3_setup_multiple_pads(wifi_pwr_pads, ARRAY_SIZE(wifi_pwr_pads));
