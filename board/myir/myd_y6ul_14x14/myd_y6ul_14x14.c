@@ -705,16 +705,16 @@ static void setup_iomux_fec(int fec_id)
 						 ARRAY_SIZE(fec1_pads));
 		/* Reset the PHY */
 		gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
-		udelay(100);
+		mdelay(10);
 		gpio_set_value(IMX_GPIO_NR(5, 9) , 1);
-		udelay(10000);
+		mdelay(1);
 	}else{
 		imx_iomux_v3_setup_multiple_pads(fec2_pads,
 						 ARRAY_SIZE(fec2_pads));
 		gpio_direction_output(IMX_GPIO_NR(5, 6) , 0);
-		udelay(100);
+		mdelay(10);
 		gpio_set_value(IMX_GPIO_NR(5, 6) , 1);
-		udelay(10000);
+		mdelay(1);
 	};
 }
 
@@ -764,8 +764,6 @@ static int setup_fec(int fec_id)
 
 int board_phy_config(struct phy_device *phydev)
 {
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x8190);
-
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
 
@@ -876,10 +874,6 @@ int board_init(void)
 {
 	/* Address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
-
-	imx_iomux_v3_setup_multiple_pads(iox_pads, ARRAY_SIZE(iox_pads));
-
-	iox74lv_init();
 
 	/* WiFi Power */
 	imx_iomux_v3_setup_multiple_pads(wifi_pwr_pads, ARRAY_SIZE(wifi_pwr_pads));
