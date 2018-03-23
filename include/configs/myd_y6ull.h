@@ -32,7 +32,11 @@
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define CONFIG_BOOTARGS_CMA_SIZE   "cma=96M "
 #else
+#if (CONFIG_DDR_SIZE == 512)
+#define PHYS_SDRAM_SIZE		SZ_512M
+#elif (CONFIG_DDR_SIZE == 256)
 #define PHYS_SDRAM_SIZE		SZ_256M
+#endif
 #define CONFIG_BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
 #undef CONFIG_LDO_BYPASS_CHECK
