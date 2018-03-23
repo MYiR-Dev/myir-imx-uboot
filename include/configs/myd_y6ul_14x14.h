@@ -35,7 +35,11 @@
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define CONFIG_BOOTARGS_CMA_SIZE   "cma=96M "
 #else
+#if (CONFIG_DDR_SIZE == 512)
+#define PHYS_SDRAM_SIZE		SZ_512M
+#elif (CONFIG_DDR_SIZE == 256)
 #define PHYS_SDRAM_SIZE		SZ_256M
+#endif
 #define CONFIG_BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
 #undef CONFIG_LDO_BYPASS_CHECK
@@ -199,7 +203,7 @@
 				"if test $board_name = EVK && test $board_rev = 9X9; then " \
 					"setenv fdt_file imx6ul-9x9-evk.dtb; fi; " \
 				"if test $board_name = MYD-Y6UL && test $board_rev = 14X14; then " \
-					"setenv fdt_file myd-y6ull-gpmi-weim.dtb; fi; " \
+					"setenv fdt_file myd-y6ul-gpmi-weim.dtb; fi; " \
 				"if test $fdt_file = undefined; then " \
 					"echo WARNING: Could not determine dtb to use; fi; " \
 			"fi;\0" \
