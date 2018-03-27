@@ -5,8 +5,8 @@
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
-#ifndef __MX6ULLEVK_CONFIG_H
-#define __MX6ULLEVK_CONFIG_H
+#ifndef __MYD_Y6ULY2_CONFIG_H
+#define __MYD_Y6ULY2_CONFIG_H
 
 
 #include <asm/arch/imx-regs.h>
@@ -68,15 +68,15 @@
 #define CONFIG_SYS_FSL_ESDHC_ADDR	USDHC2_BASE_ADDR
 
 /* NAND pin conflicts with usdhc2 */
-#ifdef CONFIG_SYS_USE_NAND
-#define CONFIG_SYS_FSL_USDHC_NUM	1
-#else
+#if defined(CONFIG_SYS_BOOT_EMMC)
 #define CONFIG_SYS_FSL_USDHC_NUM	2
-#endif
+#elif defined(CONFIG_SYS_BOOT_NAND)
+#define CONFIG_SYS_FSL_USDHC_NUM	1
 #endif
 
+#endif /* end CONFIG_FSL_USDHC */
+
 /* I2C configs */
-#define CONFIG_CMD_I2C
 #ifdef CONFIG_CMD_I2C
 #define CONFIG_SYS_I2C
 #define CONFIG_SYS_I2C_MXC
@@ -117,6 +117,9 @@
 #if defined(CONFIG_SYS_BOOT_NAND)
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS \
+	"script=boot.scr\0" \
+	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
+	"mmcpart=" __stringify(CONFIG_SYS_MMC_IMG_LOAD_PART) "\0" \
 	"panel=TFT43AB\0" \
 	"fdt_addr=0x83000000\0" \
 	"fdt_high=0xffffffff\0"	  \
@@ -124,11 +127,22 @@
 	"bootargs=console=ttymxc0,115200 ubi.mtd=3 "  \
 		"root=ubi0:rootfs rootfstype=ubifs "		     \
 		CONFIG_BOOTARGS_CMA_SIZE \
-		"mtdparts=gpmi-nand:5m(boot),10m(kernel),1m(dtb),-(rootfs)\0"\
+		"mtdparts=gpmi-nand:5m(boot),10m(kernel),1m(dtb),-(rootfs)\0"
+#ifdef CONFIG_SDCARD
+
+#define CONFIG_BOOTCOMMAND \
+	"mmc dev ${mmcdev}; " \
+	"if mmc rescan; then " \
+		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script} && " \
+		"source ${loadaddr}; " \
+	"fi; "
+
+#else
+#define CONFIG_BOOTCOMMAND \
 	"bootcmd=nand read ${loadaddr} 0x500000 0xA00000;"\
 		"nand read ${fdt_addr} 0xF00000 0x100000;"\
-		"bootz ${loadaddr} - ${fdt_addr}\0"
-
+		"bootz ${loadaddr} - ${fdt_addr}"
+#endif
 #else
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS \
@@ -257,7 +271,7 @@
 #endif
 
 #define CONFIG_SYS_MMC_ENV_DEV		0   /* USDHC1 */
-#define CONFIG_SYS_MMC_ENV_PART		0	/* user area */
+#define CONFIG_SYS_MMC_ENV_PART		1	/* user area */
 #define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* USDHC1 */
 
 #define CONFIG_CMD_BMODE
