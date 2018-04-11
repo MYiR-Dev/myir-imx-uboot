@@ -32,7 +32,13 @@
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define CONFIG_BOOTARGS_CMA_SIZE   "cma=96M "
 #else
+
+#if (CONFIG_DDR_SIZE == 512)
+#define PHYS_SDRAM_SIZE		SZ_512M
+#elif (CONFIG_DDR_SIZE == 256)
 #define PHYS_SDRAM_SIZE		SZ_256M
+#endif
+
 #define CONFIG_BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
 #undef CONFIG_LDO_BYPASS_CHECK
@@ -64,11 +70,13 @@
 #define CONFIG_SYS_FSL_ESDHC_ADDR	USDHC2_BASE_ADDR
 
 /* NAND pin conflicts with usdhc2 */
-#ifdef CONFIG_SYS_USE_NAND
-#define CONFIG_SYS_FSL_USDHC_NUM	1
-#else
+
+#if defined(CONFIG_SYS_BOOT_EMMC)
 #define CONFIG_SYS_FSL_USDHC_NUM	2
+#elif defined(CONFIG_SYS_BOOT_NAND)
+#define CONFIG_SYS_FSL_USDHC_NUM	1
 #endif
+
 #endif
 
 /* I2C configs */
@@ -249,13 +257,12 @@
 #define CONFIG_SYS_USE_NAND
 #define CONFIG_ENV_IS_IN_NAND
 #else
-#define CONFIG_FSL_QSPI
 #define CONFIG_ENV_IS_IN_MMC
 #endif
 
-#define CONFIG_SYS_MMC_ENV_DEV		1   /* USDHC2 */
-#define CONFIG_SYS_MMC_ENV_PART		0	/* user area */
-#define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
+#define CONFIG_SYS_MMC_ENV_DEV		0   /* USDHC1 */
+#define CONFIG_SYS_MMC_ENV_PART		1	/* user area */
+#define CONFIG_MMCROOT			"/dev/mmcblk0p2"  /* USDHC1 */
 
 #define CONFIG_CMD_BMODE
 
