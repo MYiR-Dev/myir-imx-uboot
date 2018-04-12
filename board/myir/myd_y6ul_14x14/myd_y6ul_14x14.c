@@ -351,7 +351,7 @@ static iomux_v3_cfg_t const usdhc1_pads[] = {
  * Introduce CONFIG_MX6UL_EVK_EMMC_REWORK, if sd2 reworked to support
  * emmc, need to define this macro.
  */
-#if defined(CONFIG_MX6UL_EVK_EMMC_REWORK)
+#if defined(CONFIG_SYS_BOOT_EMMC)
 static iomux_v3_cfg_t const usdhc2_emmc_pads[] = {
 	MX6_PAD_NAND_RE_B__USDHC2_CLK | MUX_PAD_CTRL(USDHC_PAD_CTRL),
 	MX6_PAD_NAND_WE_B__USDHC2_CMD | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -369,7 +369,7 @@ static iomux_v3_cfg_t const usdhc2_emmc_pads[] = {
 	 */
 	MX6_PAD_NAND_ALE__GPIO4_IO10 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
-#else
+#endif
 #if 0
 static iomux_v3_cfg_t const usdhc2_pads[] = {
 	MX6_PAD_NAND_RE_B__USDHC2_CLK | MUX_PAD_CTRL(USDHC_PAD_CTRL),
@@ -392,7 +392,6 @@ static iomux_v3_cfg_t const usdhc2_dat3_pads[] = {
 	MX6_PAD_NAND_DATA03__USDHC2_DATA3 |
 	MUX_PAD_CTRL(USDHC_DAT3_CD_PAD_CTRL),
 };
-#endif
 #endif
 
 static void setup_iomux_uart(void)
@@ -428,12 +427,10 @@ static int board_qspi_init(void)
 #endif
 
 #ifdef CONFIG_FSL_ESDHC
-static struct fsl_esdhc_cfg usdhc_cfg[2] = {
+static struct fsl_esdhc_cfg usdhc_cfg[] = {
 	{USDHC1_BASE_ADDR, 0, 4},
-#if defined(CONFIG_MX6UL_EVK_EMMC_REWORK)
+#if defined(CONFIG_SYS_BOOT_EMMC)
 	{USDHC2_BASE_ADDR, 0, 8},
-#else
-	//{USDHC2_BASE_ADDR, 0, 4},
 #endif
 };
 
@@ -468,23 +465,8 @@ int board_mmc_getcd(struct mmc *mmc)
 		ret = !gpio_get_value(USDHC1_CD_GPIO);
 		break;
 	case USDHC2_BASE_ADDR:
-#if defined(CONFIG_MX6UL_EVK_EMMC_REWORK)
+#if defined(CONFIG_SYS_BOOT_EMMC)
 		ret = 1;
-#else
-#if 0
-		imx_iomux_v3_setup_multiple_pads(usdhc2_cd_pads,
-						 ARRAY_SIZE(usdhc2_cd_pads));
-		gpio_direction_input(USDHC2_CD_GPIO);
-
-		/*
-		 * Since it is the DAT3 pin, this pin is pulled to
-		 * low voltage if no card
-		 */
-		ret = gpio_get_value(USDHC2_CD_GPIO);
-
-		imx_iomux_v3_setup_multiple_pads(usdhc2_dat3_pads,
-						 ARRAY_SIZE(usdhc2_dat3_pads));
-#endif
 #endif
 		break;
 	}
@@ -530,8 +512,6 @@ int board_mmc_init(bd_t *bis)
 #if defined(CONFIG_MX6UL_EVK_EMMC_REWORK)
 	imx_iomux_v3_setup_multiple_pads(usdhc2_emmc_pads,
 					 ARRAY_SIZE(usdhc2_emmc_pads));
-#else
-	//imx_iomux_v3_setup_multiple_pads(usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
 #endif
 	usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC2_CLK);
 	return fsl_esdhc_initialize(bis, &usdhc_cfg[1]);
@@ -557,14 +537,9 @@ int board_mmc_init(bd_t *bis)
 			gpio_direction_output(USDHC1_PWR_GPIO, 1);
 			break;
 		case 1:
-#if defined(CONFIG_MX6UL_EVK_EMMC_REWORK)
+#if defined(CONFIG_SYS_BOOT_EMMC)
 			imx_iomux_v3_setup_multiple_pads(
 				usdhc2_emmc_pads, ARRAY_SIZE(usdhc2_emmc_pads));
-#else
-#ifndef CONFIG_SYS_USE_NAND
-			//imx_iomux_v3_setup_multiple_pads(
-			//	usdhc2_pads, ARRAY_SIZE(usdhc2_pads));
-#endif
 #endif
 			usdhc_cfg[1].sdhc_clk = mxc_get_clock(MXC_ESDHC2_CLK);
 			break;
@@ -939,7 +914,7 @@ int board_late_init(void)
 #endif
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	setenv("board_name", "MYD-Y6UL");
+	setenv("board_name", "MYD-Y6ULG2");
 
 	if (is_mx6ul_9x9_evk())
 		setenv("board_rev", "9X9");
