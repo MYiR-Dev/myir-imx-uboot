@@ -73,7 +73,7 @@
 /* NAND pin conflicts with usdhc2 */
 #ifdef CONFIG_SYS_BOOT_NAND
 #define CONFIG_SYS_FSL_USDHC_NUM	1
-#elif defcined(CONFIG_SYS_BOOT_EMMC)
+#elif defined(CONFIG_SYS_BOOT_EMMC)
 #define CONFIG_SYS_FSL_USDHC_NUM	2
 #endif
 #endif
