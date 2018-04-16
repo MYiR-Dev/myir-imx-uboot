@@ -35,7 +35,13 @@
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define CONFIG_BOOTARGS_CMA_SIZE   "cma=96M "
 #else
+
+#if (CONFIG_DDR_SIZE == 512)
+#define PHYS_SDRAM_SIZE		SZ_512M
+#elif (CONFIG_DDR_SIZE == 256)
 #define PHYS_SDRAM_SIZE		SZ_256M
+#endif
+
 #define CONFIG_BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
 #undef CONFIG_LDO_BYPASS_CHECK
@@ -67,12 +73,13 @@
 #define CONFIG_SYS_FSL_ESDHC_ADDR	USDHC2_BASE_ADDR
 
 /* NAND pin conflicts with usdhc2 */
-#ifdef CONFIG_SYS_USE_NAND
-#define CONFIG_SYS_FSL_USDHC_NUM	1
-#else
+#if defined(CONFIG_SYS_BOOT_EMMC)
 #define CONFIG_SYS_FSL_USDHC_NUM	2
+#elif defined(CONFIG_SYS_BOOT_NAND)
+#define CONFIG_SYS_FSL_USDHC_NUM	1
 #endif
-#endif
+
+#endif /* End MMC Config */
 
 /* I2C configs */
 #define CONFIG_CMD_I2C
@@ -328,6 +335,7 @@
 #ifdef CONFIG_CMD_NET
 #define CONFIG_FEC_MXC
 #define CONFIG_MII
+#define CONFIG_CMD_MII
 #define CONFIG_FEC_ENET_DEV		0
 
 #if (CONFIG_FEC_ENET_DEV == 0)
@@ -348,7 +356,7 @@
 #define CONFIG_IMX_THERMAL
 
 #ifndef CONFIG_SPL_BUILD
-#define CONFIG_VIDEO
+/*#define CONFIG_VIDEO*/
 #ifdef CONFIG_VIDEO
 #define CONFIG_CFB_CONSOLE
 #define CONFIG_VIDEO_MXS
