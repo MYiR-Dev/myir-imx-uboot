@@ -143,7 +143,7 @@
 
 #else
 #define CONFIG_BOOTCOMMAND \
-	"bootcmd=nand read ${loadaddr} 0x500000 0xA00000;"\
+	"nand read ${loadaddr} 0x500000 0xA00000;"\
 		"nand read ${fdt_addr} 0xF00000 0x100000;"\
 		"bootz ${loadaddr} - ${fdt_addr}"
 #endif
