@@ -663,6 +663,7 @@ static void setup_iomux_fec(int fec_id)
 		gpio_direction_output(IMX_GPIO_NR(5, 6) , 0);
 		mdelay(10);
 		gpio_direction_output(IMX_GPIO_NR(5, 6) , 1);
+		mdelay(1);
 	}else
 		imx_iomux_v3_setup_multiple_pads(fec2_pads,
 						 ARRAY_SIZE(fec2_pads));
