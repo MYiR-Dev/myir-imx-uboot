@@ -218,7 +218,7 @@
 			"if test $fdt_file = undefined; then " \
 				"if test $board_name = EVK && test $board_rev = 9X9; then " \
 					"setenv fdt_file imx6ul-9x9-evk.dtb; fi; " \
-				"if test $board_name = MYD-Y6UL && test $board_rev = 14X14; then " \
+				"if test $board_name = MYD-Y6ULG2 && test $board_rev = 14X14; then " \
 					"setenv fdt_file myd-y6ul-gpmi-weim.dtb; fi; " \
 				"if test $fdt_file = undefined; then " \
 					"echo WARNING: Could not determine dtb to use; fi; " \

@@ -926,7 +926,7 @@ int board_late_init(void)
 #endif
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	setenv("board_name", "MYD6ULL");
+	setenv("board_name", "MYD-Y6ULY2");
 
 	if (is_mx6ull_9x9_evk())
 		setenv("board_rev", "9X9");
