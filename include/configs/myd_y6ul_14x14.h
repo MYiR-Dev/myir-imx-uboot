@@ -97,7 +97,7 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #ifdef CONFIG_SYS_BOOT_NAND
-#define CONFIG_MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),10m(kernel),1m(dtb),-(rootfs) "
+#define CONFIG_MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),-(rootfs) "
 #else
 #define CONFIG_MFG_NAND_PARTITION ""
 #endif
@@ -118,6 +118,7 @@
 	"bootcmd_mfg=run mfgtool_args;bootz ${loadaddr} ${initrd_addr} ${fdt_addr};\0" \
 
 #if defined(CONFIG_SYS_BOOT_NAND)
+#define CONFIG_NAND_MTDPARTS "gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),-(rootfs)"
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	CONFIG_MFG_ENV_SETTINGS \
 	"script=boot.scr\0" \
@@ -127,10 +128,13 @@
 	"fdt_addr=0x83000000\0" \
 	"fdt_high=0xffffffff\0"	  \
 	"console=ttymxc0\0" \
-	"bootargs=console=ttymxc0,115200 ubi.mtd=3 "  \
+	"partition=nand0,0\0" \
+	"mtdids=nand0=gpmi-nand\0" \
+	"mtdparts=mtdparts=" CONFIG_NAND_MTDPARTS "\0" \
+	"bootargs=console=ttymxc0,115200 ubi.mtd=4 "  \
 		"root=ubi0:rootfs rootfstype=ubifs "		     \
 		CONFIG_BOOTARGS_CMA_SIZE \
-		"mtdparts=gpmi-nand:5m(boot),10m(kernel),1m(dtb),-(rootfs)\0"
+		"mtdparts=" CONFIG_NAND_MTDPARTS "\0"
 
 #ifdef CONFIG_SDCARD
 
@@ -143,8 +147,8 @@
 
 #else
 #define CONFIG_BOOTCOMMAND \
-	"nand read ${loadaddr} 0x500000 0xA00000;"\
-		"nand read ${fdt_addr} 0xF00000 0x100000;"\
+	"nand read ${loadaddr} 0x600000 0xA00000;"\
+		"nand read ${fdt_addr} 0x1000000 0x100000;"\
 		"bootz ${loadaddr} - ${fdt_addr}"
 #endif
 
@@ -271,6 +275,9 @@
 #elif defined CONFIG_SYS_BOOT_NAND
 #define CONFIG_SYS_USE_NAND
 #define CONFIG_ENV_IS_IN_NAND
+#define CONFIG_CMD_MTDPARTS
+#define CONFIG_MTD_DEVICE
+#define CONFIG_MTD_PARTITIONS
 #else
 #define CONFIG_ENV_IS_IN_MMC
 #endif
@@ -324,8 +331,8 @@
 #define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 #undef CONFIG_ENV_SIZE
-#define CONFIG_ENV_OFFSET		(60 << 20)
-#define CONFIG_ENV_SECT_SIZE		(128 << 10)
+#define CONFIG_ENV_OFFSET		(5 << 20)
+#define CONFIG_ENV_SECT_SIZE		(1 << 20)
 #define CONFIG_ENV_SIZE			CONFIG_ENV_SECT_SIZE
 #endif
 
