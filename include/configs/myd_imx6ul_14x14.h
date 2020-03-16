@@ -26,7 +26,14 @@
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define BOOTARGS_CMA_SIZE   "cma=96M "
 #else
-#define PHYS_SDRAM_SIZE		SZ_512M
+#if (CONFIG_DDR_SIZE == 256)
+#define PHYS_SDRAM_SIZE     SZ_256M
+#elif (CONFIG_DDR_SIZE == 512)
+#define PHYS_SDRAM_SIZE     SZ_512M
+#elif (CONFIG_DDR_SIZE == 1024)
+#define PHYS_SDRAM_SIZE     SZ_1G
+#endif
+
 #define BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
 #undef CONFIG_LDO_BYPASS_CHECK
@@ -65,7 +72,7 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #ifdef CONFIG_NAND_BOOT
-#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:64m(nandboot),16m(nandkernel),16m(nanddtb),16m(nandtee),-(nandrootfs)"
+#define MFG_NAND_PARTITION "mdtparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),100m(rootfs),-(data)"
 #else
 #define MFG_NAND_PARTITION ""
 #endif
@@ -98,8 +105,8 @@
 		BOOTARGS_CMA_SIZE \
 		MFG_NAND_PARTITION \
 		"\0" \
-	"bootcmd=nand read ${loadaddr} 0x4000000 0x800000;"\
-		"nand read ${fdt_addr} 0x5000000 0x100000;"\
+	"bootcmd=nand read ${loadaddr} 0x600000 0xA00000;"\
+		"nand read ${fdt_addr} 0x1000000 0x100000;"\
 		"if test ${tee} = yes; then " \
 			"nand read ${tee_addr} 0x6000000 0x400000;"\
 			"bootm ${tee_addr} - ${fdt_addr};" \
