@@ -176,6 +176,17 @@ int genphy_restart_aneg(struct phy_device *phydev)
 int genphy_config_aneg(struct phy_device *phydev)
 {
 	int result;
+	int rc;
+
+    // add by alex 2020-03-16
+    do{
+        phy_write(phydev, MDIO_DEVAD_NONE, MII_BMCR, BMCR_RESET);
+        udelay(100);
+        rc=phy_read(phydev, MDIO_DEVAD_NONE, MII_BMCR);
+        udelay(100);
+
+    }while(rc&BMCR_RESET);
+
 
 	if (phydev->autoneg != AUTONEG_ENABLE)
 		return genphy_setup_forced(phydev);
@@ -184,6 +195,7 @@ int genphy_config_aneg(struct phy_device *phydev)
 
 	if (result < 0) /* error */
 		return result;
+
 
 	if (result == 0) {
 		/*
@@ -818,6 +830,8 @@ int phy_reset(struct phy_device *phydev)
 	 */
 	reg = phy_read(phydev, devad, MII_BMCR);
 	while ((reg & BMCR_RESET) && timeout--) {
+        phy_write(phydev, MDIO_DEVAD_NONE, MII_BMCR, BMCR_RESET);
+		udelay(1000);
 		reg = phy_read(phydev, devad, MII_BMCR);
 
 		if (reg < 0) {
