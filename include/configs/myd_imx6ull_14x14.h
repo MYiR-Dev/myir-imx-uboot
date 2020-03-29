@@ -73,7 +73,7 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #ifdef CONFIG_NAND_BOOT
-#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),100m(rootfs),-(data) "
+#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),150m(rootfs),-(data) "
 #else
 #define MFG_NAND_PARTITION ""
 #endif
@@ -291,8 +291,8 @@
 #define CONFIG_ENV_SPI_MAX_HZ		CONFIG_SF_DEFAULT_SPEED
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 #undef CONFIG_ENV_SIZE
-#define CONFIG_ENV_OFFSET		(60 << 20)
-#define CONFIG_ENV_SECT_SIZE		(128 << 10)
+#define CONFIG_ENV_OFFSET		(5 << 20)
+#define CONFIG_ENV_SECT_SIZE		(1 << 20)
 #define CONFIG_ENV_SIZE			CONFIG_ENV_SECT_SIZE
 #endif
 
