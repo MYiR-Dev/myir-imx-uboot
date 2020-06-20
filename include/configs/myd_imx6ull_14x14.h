@@ -26,18 +26,15 @@
 #define ET_DEBUG
 #define MII_DEBUG
 
+#define PHYS_SDRAM_SIZE     SZ_256M
+#ifdef CONFIG_DDR_SIZE
+#define PHYS_SDRAM_SIZE     SZ_256M
+#endif
+
 #ifdef CONFIG_TARGET_MX6ULL_9X9_EVK
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define BOOTARGS_CMA_SIZE   "cma=96M "
 #else
-
-#if (CONFIG_DDR_SIZE == 256)
-#define PHYS_SDRAM_SIZE     SZ_256M
-#elif (CONFIG_DDR_SIZE == 512)
-#define PHYS_SDRAM_SIZE     SZ_512M
-#elif (CONFIG_DDR_SIZE == 1024)
-#define PHYS_SDRAM_SIZE     SZ_1G
-#endif
 
 #define BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
@@ -89,7 +86,7 @@
 	"emmc_dev=1\0"\
 	"emmc_ack=1\0"\
 	"sd_dev=1\0" \
-	"mtdparts=" MFG_NAND_PARTITION \
+	MFG_NAND_PARTITION \
 	"\0"\
 
 #if defined(CONFIG_NAND_BOOT)
