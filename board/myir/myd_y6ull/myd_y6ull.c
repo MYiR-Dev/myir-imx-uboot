@@ -820,15 +820,15 @@ struct display_info_t const displays[] = {{
 	.enable	= do_enable_parallel_lcd,
 	.mode	= {
 		.name			= "TFT43AB",
-		.xres           = 480,
-		.yres           = 272,
-		.pixclock       = 108695,
-		.left_margin    = 8,
-		.right_margin   = 4,
-		.upper_margin   = 2,
-		.lower_margin   = 4,
-		.hsync_len      = 41,
-		.vsync_len      = 10,
+		.xres           = 800,
+		.yres           = 480,
+		.pixclock       = 10119,
+		.left_margin    = 210,
+		.right_margin   = 46,
+		.upper_margin   = 22,
+		.lower_margin   = 23,
+		.hsync_len      = 20,
+		.vsync_len      = 3,
 		.sync           = 0,
 		.vmode          = FB_VMODE_NONINTERLACED
 } } };
@@ -863,28 +863,28 @@ int board_init(void)
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
 	/* WiFi Power */
-	imx_iomux_v3_setup_multiple_pads(wifi_pwr_pads, ARRAY_SIZE(wifi_pwr_pads));
-	gpio_direction_output(IMX_GPIO_NR(1, 10) , 0);
+	// imx_iomux_v3_setup_multiple_pads(wifi_pwr_pads, ARRAY_SIZE(wifi_pwr_pads));
+	// gpio_direction_output(IMX_GPIO_NR(1, 10) , 0);
 
-	/* WiFi Reset */
-	gpio_direction_output(IMX_GPIO_NR(4, 16) , 0);
-	udelay(3000);
-	gpio_direction_output(IMX_GPIO_NR(4, 16) , 1);
+	// /* WiFi Reset */
+	// gpio_direction_output(IMX_GPIO_NR(4, 16) , 0);
+	// udelay(3000);
+	// gpio_direction_output(IMX_GPIO_NR(4, 16) , 1);
 
-	/* LCD Power */
-	imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
-	gpio_direction_output(IMX_GPIO_NR(3, 4) , 1);
+	// /* LCD Power */
+	// imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
+	// gpio_direction_output(IMX_GPIO_NR(3, 4) , 1);
 
-	/* LTE module */
-	imx_iomux_v3_setup_multiple_pads(lte_pwr_pads, ARRAY_SIZE(lte_pwr_pads));
-	/* LTE wakeup */
-	gpio_direction_output(IMX_GPIO_NR(5, 8) , 1);
-	/* LTE power */
-	gpio_direction_output(IMX_GPIO_NR(5, 5) , 1);
-	/* LTE reset */
-	gpio_direction_output(IMX_GPIO_NR(4, 14) , 1);
-	udelay(150000);
-	gpio_direction_output(IMX_GPIO_NR(4, 14) , 0);
+	// /* LTE module */
+	// imx_iomux_v3_setup_multiple_pads(lte_pwr_pads, ARRAY_SIZE(lte_pwr_pads));
+	// /* LTE wakeup */
+	// gpio_direction_output(IMX_GPIO_NR(5, 8) , 1);
+	// /* LTE power */
+	// gpio_direction_output(IMX_GPIO_NR(5, 5) , 1);
+	// /* LTE reset */
+	// gpio_direction_output(IMX_GPIO_NR(4, 14) , 1);
+	// udelay(150000);
+	// gpio_direction_output(IMX_GPIO_NR(4, 14) , 0);
 
 #ifdef CONFIG_SYS_I2C_MXC
 	setup_i2c(0, CONFIG_SYS_I2C_SPEED, 0x7f, &i2c_pad_info1);
