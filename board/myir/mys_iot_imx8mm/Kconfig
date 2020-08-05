@@ -1,0 +1,14 @@
+if  TARGET_MYS_IOT_IMX8MM_DDR4_EVK
+
+config SYS_BOARD
+	default "mys_iot_imx8mm"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "mys_iot_imx8mm"
+
+source "board/myir/common/Kconfig"
+
+endif
