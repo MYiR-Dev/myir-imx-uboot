@@ -218,8 +218,8 @@ u32 get_cpu_temp_grade(int *minc, int *maxc)
 			*minc = -20;
 			*maxc = 105;
 		} else {
-			*minc = 0;
-			*maxc = 95;
+			*minc = -40;
+			*maxc = 115;
 		}
 	}
 	return val;
