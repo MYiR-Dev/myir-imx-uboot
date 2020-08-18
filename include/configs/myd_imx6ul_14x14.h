@@ -28,7 +28,6 @@
 #define BOOTARGS_CMA_SIZE   "cma=96M "
 #else
 #define PHYS_SDRAM_SIZE     SZ_512M
-#endif
 
 #define BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
