@@ -66,6 +66,15 @@ DECLARE_GLOBAL_DATA_PTR;
 			PAD_CTL_SRE_FAST)
 #define GPMI_PAD_CTRL2 (GPMI_PAD_CTRL0 | GPMI_PAD_CTRL1)
 
+static iomux_v3_cfg_t const lcd_pwr_pads[] = {
+	        MX6_PAD_LCD_RESET__GPIO3_IO04 | MUX_PAD_CTRL(NO_PAD_CTRL),
+			MX6_PAD_GPIO1_IO08__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
+			MX6_PAD_GPIO1_IO09__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),		
+			MX6_PAD_SNVS_TAMPER2__GPIO5_IO02 | 	MUX_PAD_CTRL(NO_PAD_CTRL),
+			MX6_PAD_LCD_ENABLE__GPIO3_IO01 | 	MUX_PAD_CTRL(NO_PAD_CTRL),
+			    
+};
+
 #define LCD_PAD_CTRL    (PAD_CTL_HYS | PAD_CTL_PUS_100K_UP | PAD_CTL_PUE | \
 	PAD_CTL_PKE | PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm)
 
@@ -531,6 +540,7 @@ int board_phy_config(struct phy_device *phydev)
 }
 #endif
 
+// #define CONFIG_VIDEO_MXS 1
 #ifdef CONFIG_VIDEO_MXS
 static iomux_v3_cfg_t const lcd_pads[] = {
 	MX6_PAD_LCD_CLK__LCDIF_CLK | MUX_PAD_CTRL(LCD_PAD_CTRL),
@@ -576,36 +586,63 @@ void do_enable_parallel_lcd(struct display_info_t const *dev)
 	imx_iomux_v3_setup_multiple_pads(lcd_pads, ARRAY_SIZE(lcd_pads));
 
 	/* Reset the LCD */
-	gpio_request(IMX_GPIO_NR(5, 9), "lcd reset");
-	gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
-	udelay(500);
-	gpio_direction_output(IMX_GPIO_NR(5, 9) , 1);
+	// gpio_request(IMX_GPIO_NR(5, 9), "lcd reset");
+	// gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
+	// udelay(500);
+	// gpio_direction_output(IMX_GPIO_NR(5, 9) , 1);
 
 	/* Set Brightness to high */
 	gpio_request(IMX_GPIO_NR(1, 8), "backlight");
 	gpio_direction_output(IMX_GPIO_NR(1, 8) , 1);
 }
 
-struct display_info_t const displays[] = {{
-	.bus = MX6UL_LCDIF1_BASE_ADDR,
-	.addr = 0,
-	.pixfmt = 24,
-	.detect = NULL,
-	.enable	= do_enable_parallel_lcd,
-	.mode	= {
-		.name			= "TFT43AB",
-		.xres           = 480,
-		.yres           = 272,
-		.pixclock       = 108695,
-		.left_margin    = 8,
-		.right_margin   = 4,
-		.upper_margin   = 2,
-		.lower_margin   = 4,
-		.hsync_len      = 41,
-		.vsync_len      = 10,
-		.sync           = 0,
-		.vmode          = FB_VMODE_NONINTERLACED
-} } };
+struct display_info_t const displays[] = {
+	
+	{
+		.bus = MX6UL_LCDIF1_BASE_ADDR,
+		.addr = 0,
+		.pixfmt = 16,
+		.detect = NULL,
+		.enable	= do_enable_parallel_lcd,
+		.mode	= {
+			.name			= "MYIR-LCD-4.3-480x272",
+			.xres           = 480,
+			.yres           = 272,
+			.pixclock       = 108695,
+			.left_margin    = 8,
+			.right_margin   = 4,
+			.upper_margin   = 2,
+			.lower_margin   = 4,
+			.hsync_len      = 41,
+			.vsync_len      = 10,
+			.sync           = 0,
+			.vmode          = FB_VMODE_NONINTERLACED
+		}
+	},
+
+    {
+		.bus = MX6UL_LCDIF1_BASE_ADDR,
+		.addr = 0,
+		.pixfmt = 16,
+		.detect = NULL,
+		.enable = do_enable_parallel_lcd,
+		.mode   = {
+			.name           = "MYIR-LCD-7-800x480",
+			.xres           = 800,
+			.yres           = 480,
+			.pixclock       = 10119,
+			.left_margin    = 210,
+			.right_margin   = 46,
+			.upper_margin   = 22,
+			.lower_margin   = 23,
+			.hsync_len      = 20,
+			.vsync_len      = 3,
+			.sync           = 1,
+			.vmode          = FB_VMODE_NONINTERLACED
+		}
+       },
+
+};
 size_t display_count = ARRAY_SIZE(displays);
 #endif
 
@@ -618,6 +655,13 @@ int board_early_init_f(void)
 
 int board_init(void)
 {
+
+    /* LCD Power */
+	imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
+	gpio_request(IMX_GPIO_NR(3, 4), "power");
+	
+	gpio_direction_output(IMX_GPIO_NR(3, 4) , 1);
+
 	/* Address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
@@ -664,7 +708,7 @@ int board_late_init(void)
 #endif
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	env_set("board_name", "EVK");
+	env_set("board_name", "MYiR MYD-Y6ULX-G2");
 
 	if (is_mx6ul_9x9_evk())
 		env_set("board_rev", "9X9");

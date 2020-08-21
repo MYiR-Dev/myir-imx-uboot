@@ -50,7 +50,7 @@ static iomux_v3_cfg_t const lcd_pwr_pads[] = {
 	        MX6_PAD_LCD_RESET__GPIO3_IO04 | MUX_PAD_CTRL(NO_PAD_CTRL),
 			MX6_PAD_GPIO1_IO08__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
 			MX6_PAD_GPIO1_IO09__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),		
-			// MX6_PAD_SNVS_TAMPER2__GPIO5_IO02 | 	MUX_PAD_CTRL(NO_PAD_CTRL),
+			MX6_PAD_SNVS_TAMPER2__GPIO5_IO02 | 	MUX_PAD_CTRL(NO_PAD_CTRL),
 			MX6_PAD_LCD_ENABLE__GPIO3_IO01 | 	MUX_PAD_CTRL(NO_PAD_CTRL),
 			    
 };
@@ -379,20 +379,8 @@ int board_init(void)
 
     /* LCD Power */
 	imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
-	gpio_request(IMX_GPIO_NR(1, 8), "lcd1");
-	gpio_request(IMX_GPIO_NR(1, 9), "lcd2");
-	gpio_request(IMX_GPIO_NR(3, 1), "lcd3");
-	gpio_request(IMX_GPIO_NR(5, 2), "lcd4");
-	gpio_request(IMX_GPIO_NR(3, 4), "lcd5");
-	
+	gpio_request(IMX_GPIO_NR(3, 4), "power");
 	gpio_direction_output(IMX_GPIO_NR(3, 4) , 1);
-	gpio_direction_output(IMX_GPIO_NR(1, 8) , 1);
-	gpio_direction_output(IMX_GPIO_NR(1, 9) , 1);
-	gpio_direction_output(IMX_GPIO_NR(3, 1) , 1);
-	gpio_direction_output(IMX_GPIO_NR(5, 2) , 1);
-
-	// env_set("panel","MYIR-LCD-7-800x480");
-	// env_set("board_name", "MYiR MYD-Y6ULX-Y2");
 
 	/* Address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
