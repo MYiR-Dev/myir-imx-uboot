@@ -1,0 +1,14 @@
+if TARGET_MYD_MX6ULL_14X14 || TARGET_MX6ULL_14X14_EVK || TARGET_MX6ULL_9X9_EVK
+
+config SYS_BOARD
+	default "myd_imx6ull_14x14"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "myd_imx6ull_14x14"
+
+config SYS_TEXT_BASE
+	default 0x87800000
+endif

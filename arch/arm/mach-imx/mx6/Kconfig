@@ -548,6 +548,23 @@ config TARGET_MX6ULL_14X14_EVK
 	select MX6ULL
 	imply CMD_DM
 
+config TARGET_MYD_MX6ULL_14X14 
+	bool "Support myd_imx6ull_14x14"
+	select BOARD_LATE_INIT
+	select DM
+	select DM_THERMAL
+	select MX6ULL
+	imply CMD_DM
+
+config TARGET_MYD_MX6UL_14X14
+    bool "mx6ul_14x14_evk"
+	select BOARD_LATE_INIT
+	select DM
+	select DM_THERMAL
+	select MX6UL
+	select SUPPORT_SPL
+	imply CMD_DM
+
 config TARGET_NITROGEN6X
 	bool "nitrogen6x"
 	imply USB_ETHER_ASIX
@@ -731,6 +748,8 @@ source "board/freescale/mx6ul_14x14_evk/Kconfig"
 source "board/freescale/mx6ul_14x14_ddr3_arm2/Kconfig"
 source "board/freescale/mx6ul_14x14_lpddr2_arm2/Kconfig"
 source "board/freescale/mx6ullevk/Kconfig"
+source "board/myir/myd_imx6ull_14x14/Kconfig"
+source "board/myir/myd_imx6ul_14x14/Kconfig"
 source "board/freescale/mx6ull_ddr3_arm2/Kconfig"
 source "board/grinn/liteboard/Kconfig"
 source "board/phytec/pcm058/Kconfig"
