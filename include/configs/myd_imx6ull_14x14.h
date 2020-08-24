@@ -5,9 +5,14 @@
  *
  * Configuration settings for the Freescale i.MX6UL 14x14 EVK board.
  */
+ 
+/*
 #ifndef __MX6ULLEVK_CONFIG_H
 #define __MX6ULLEVK_CONFIG_H
+*/
 
+#ifndef __MYD_IMX6ULL_14X14_CONFIG_H
+#define __MYD_IMX6ULL_14X14_CONFIG_H
 
 #include <asm/arch/imx-regs.h>
 #include <linux/sizes.h>
@@ -26,15 +31,11 @@
 #define ET_DEBUG
 #define MII_DEBUG
 
-#define PHYS_SDRAM_SIZE     SZ_256M
-#ifdef CONFIG_DDR_SIZE
-#define PHYS_SDRAM_SIZE     SZ_256M
-#endif
-
 #ifdef CONFIG_TARGET_MX6ULL_9X9_EVK
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define BOOTARGS_CMA_SIZE   "cma=96M "
 #else
+#define PHYS_SDRAM_SIZE		SZ_512M
 
 #define BOOTARGS_CMA_SIZE   ""
 /* DCDC used on 14x14 EVK, no PMIC */
@@ -86,8 +87,9 @@
 	"emmc_dev=1\0"\
 	"emmc_ack=1\0"\
 	"sd_dev=1\0" \
-	MFG_NAND_PARTITION \
+	"mtdparts=" MFG_NAND_PARTITION \
 	"\0"\
+
 
 #if defined(CONFIG_NAND_BOOT)
 #define CONFIG_EXTRA_ENV_SETTINGS \

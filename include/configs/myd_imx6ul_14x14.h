@@ -5,8 +5,9 @@
  *
  * Configuration settings for the Freescale i.MX6UL 14x14 EVK board.
  */
-#ifndef __MX6UL_14X14_EVK_CONFIG_H
-#define __MX6UL_14X14_EVK_CONFIG_H
+ 
+#ifndef __MYD_IMX6UL_14X14_CONFIG_H
+#define __MYD_IMX6UL_14X14_CONFIG_H
 
 #include <asm/arch/imx-regs.h>
 #include <linux/sizes.h>
@@ -26,12 +27,7 @@
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define BOOTARGS_CMA_SIZE   "cma=96M "
 #else
-#if (CONFIG_DDR_SIZE == 256)
-#define PHYS_SDRAM_SIZE     SZ_256M
-#elif (CONFIG_DDR_SIZE == 512)
 #define PHYS_SDRAM_SIZE     SZ_512M
-#elif (CONFIG_DDR_SIZE == 1024)
-#define PHYS_SDRAM_SIZE     SZ_1G
 #endif
 
 #define BOOTARGS_CMA_SIZE   ""
@@ -72,7 +68,7 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #ifdef CONFIG_NAND_BOOT
-#define MFG_NAND_PARTITION "mdtparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),100m(rootfs),-(data)"
+#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),150m(rootfs),-(data) "
 #else
 #define MFG_NAND_PARTITION ""
 #endif
@@ -296,6 +292,7 @@
 #ifdef CONFIG_CMD_NET
 #define CONFIG_CMD_MII
 #define CONFIG_FEC_MXC
+#define CONFIG_CMD_MII
 #define CONFIG_FEC_ENET_DEV	 0	
 #define CONFIG_PHY_SMSC
 
