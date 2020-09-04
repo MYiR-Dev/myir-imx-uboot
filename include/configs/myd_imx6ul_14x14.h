@@ -67,7 +67,10 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #ifdef CONFIG_NAND_BOOT
+/*
 #define MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),150m(rootfs),-(data) "
+*/
+#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),-(rootfs) "
 #else
 #define MFG_NAND_PARTITION ""
 #endif
