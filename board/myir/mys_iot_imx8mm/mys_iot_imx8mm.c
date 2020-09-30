@@ -311,6 +311,64 @@ int board_init(void)
 #ifdef CONFIG_VIDEO_MXS
 
 
+#define _LVDS_Output_ 1
+#ifdef _LVDS_Output_
+
+// ????LVDS????CLK??
+#define Panel_Pixel_CLK 5920    // 65MHz * 100
+
+//--------------------------------------------//
+// ????LVDS?????
+#define _8_Bit_Color_           // 24 bit
+//  #define _6_Bit_Color_ // 18 bit
+
+// ????LVDS?????
+#define _VESA_
+//#define _JEIDA_
+
+//#define _De_mode_
+#define _Sync_Mode_
+
+//--------------------------------------------//
+
+#ifdef _VESA_
+#define _VesaJeidaMode 0x00
+#else
+#define _VesaJeidaMode 0x20
+#endif
+
+#ifdef _De_mode_
+#define _DE_Sync_mode 0x08
+#else
+#define _DE_Sync_mode 0x00
+#endif
+
+#ifdef _8_Bit_Color_
+#define _ColorDeepth 0x13
+#else
+#define _ColorDeepth 0x17
+#endif
+
+//--------------------------------------------//
+
+// ???????????????????? LVDS ????Timing:
+static int LVDS_Panel_Timing[] =
+//  H_act	 V_act	 H_total V_total H_BP	 H_sync  V_sync  V_BP
+{ 1024, 600, 1344, 635, 140, 20, 3, 20 };       // 1024x600 Timing
+//{ 1024, 768, 1344, 806, 160, 136, 6, 29 };  // 1024x768 Timing
+
+union Temp
+{
+	u8	Temp8[4];
+	u16 Temp16[2];
+	u32 Temp32;
+};
+
+#endif
+
+
+
+
 #define LT8912_MAIN 0x48
 #define LT8912_SECOND 0x49
 #define LT8912_THIRD 0x4a
@@ -417,6 +475,16 @@ static void lt8912_init(void)
 	unsigned char HDMI_VIC = 0x10;   // vic ,0x10: 1080P ;  0x04 : 720P ; Refer to the following list
 
 
+#ifdef _LVDS_Output_
+	
+	union Temp	Core_PLL_Ratio;
+	float       lvds_clock = 51.2; //MHZ
+	float		f_DIV;
+	float temp_float;
+	u8     temp;
+#endif
+
+
 
 	gpio_request(IMX_GPIO_NR(1, 13), "LT8912 RESET");
 	gpio_direction_output(IMX_GPIO_NR(1, 13), 0);
@@ -457,6 +525,17 @@ static void lt8912_init(void)
 	printf("LT8912 ID: %02x, %02x\n",version[0], version[1]);
 
 
+#ifdef _LVDS_Output_
+	/* DigitalClockEn */
+	lt8912_i2c_reg_write(main_dev, 0x08,0xff, 0xff);
+	lt8912_i2c_reg_write(main_dev, 0x09,0xff, 0xff);
+	lt8912_i2c_reg_write(main_dev, 0x0a,0xff, 0xff);
+	lt8912_i2c_reg_write(main_dev, 0x0b,0xff, 0x7c);
+	lt8912_i2c_reg_write(main_dev, 0x0c,0xff, 0xff);
+
+
+	lt8912_i2c_reg_write(main_dev, 0x51,0xff, 0x15);
+#else
 
 	/* DigitalClockEn */
 	lt8912_i2c_reg_write(main_dev, 0x08,0xff, 0xff);
@@ -467,6 +546,7 @@ static void lt8912_init(void)
 
 	lt8912_i2c_reg_write(main_dev, 0x44,0xff, 0x31);
 	lt8912_i2c_reg_write(main_dev, 0x51,0xff, 0x1f);
+#endif
 
 	/* TxAnalog */
 	lt8912_i2c_reg_write(main_dev, 0x31,0xff, 0xa1);
@@ -504,6 +584,13 @@ static void lt8912_init(void)
 	lt8912_i2c_reg_write(cec_dev, 0x15,0xff, 0x00);
 	lt8912_i2c_reg_write(cec_dev, 0x1a,0xff, 0x03);
 	lt8912_i2c_reg_write(cec_dev, 0x1b,0xff, 0x03);
+
+
+#ifdef _LVDS_Output_
+	//	void LvdsPowerDown(void)
+	lt8912_i2c_reg_write(main_dev, 0x44,0xff, 0x31);
+#endif
+
 
 	/* MIPIDig */
 	lt8912_i2c_reg_write(cec_dev, 0x18,0xff, (u8)( MIPI_Timing[H_sync] % 256 )); /*hsync%256 */
@@ -611,6 +698,125 @@ static void lt8912_init(void)
 	lt8912_i2c_reg_write(cec_dev, 0x51,0xff, 0x80);
 	mdelay(10);
 	lt8912_i2c_reg_write(cec_dev, 0x51,0xff, 0x00);
+
+
+#ifdef _LVDS_Output_
+//	Coll PLL?????????
+
+	temp = (u8)(( lvds_clock*7 ) /25);
+
+	lt8912_i2c_reg_write(main_dev, 0x50,0xff, 0x24);
+	lt8912_i2c_reg_write(main_dev, 0x51,0xff, 0x05);
+	lt8912_i2c_reg_write(main_dev, 0x52,0xff, 0x14);
+
+	lt8912_i2c_reg_write(main_dev, 0x69, 0xff, temp );
+	lt8912_i2c_reg_write(main_dev, 0x69, 0xff, 0x80 + temp );
+	printf("LT8912 0x69 [%x] [%x]\n",temp,0x80 + temp);
+	temp_float = lvds_clock*7/25;
+	temp_float = (temp_float - (int)(temp_float))*16384;
+
+
+//***********************************************************//
+// ???????????????????Big-endian??
+//	lt8912_i2c_reg_write(main_dev, 0x6c, 0xff, 0x80 + Core_PLL_Ratio.Temp8[2] );
+//	lt8912_i2c_reg_write(main_dev, 0x6b, 0xff, Core_PLL_Ratio.Temp8[3] );
+
+
+// ???????????????????Little-endian??
+	temp = (u8)(temp_float/256+128);
+	lt8912_i2c_reg_write(main_dev, 0x6c, 0xff, temp);
+	printf("LT8912 0x6c [%x] \n",temp);
+	temp = (u8)(temp_float-(int)(temp_float/256)*256);
+	lt8912_i2c_reg_write(main_dev, 0x6b, 0xff, temp);
+	printf("LT8912 6b[%x]\n",temp);
+//***********************************************************//
+
+	lt8912_i2c_reg_write( main_dev, 0x04, 0xff, 0xfb ); //core pll reset
+	lt8912_i2c_reg_write( main_dev, 0x04, 0xff, 0xff );
+//------------------------------------------//
+
+
+	//  LVDS Output?????????
+	//  void LVDS_Scale_Ratio(void)
+
+
+	lt8912_i2c_reg_write( main_dev, 0x80, 0xff, 0x00 );
+	lt8912_i2c_reg_write( main_dev, 0x81, 0xff, 0xff );
+	lt8912_i2c_reg_write( main_dev, 0x82, 0xff, 0x03 );
+
+
+	lt8912_i2c_reg_write( main_dev, 0x83, 0xff, (u8)( MIPI_Timing[H_act] % 256 ) );
+	lt8912_i2c_reg_write( main_dev, 0x84, 0xff, (u8)( MIPI_Timing[H_act] / 256 ) );
+	printf("LT8912 0x83 [%x] 0x84[%x]\n",(u8)( MIPI_Timing[H_act] % 256 ),(u8)( MIPI_Timing[H_act] / 256 ));
+
+	lt8912_i2c_reg_write( main_dev, 0x85, 0xff, 0x80);
+	lt8912_i2c_reg_write( main_dev, 0x86, 0xff, 0x10);
+
+
+
+
+
+	lt8912_i2c_reg_write( main_dev, 0x87, 0xff, (u8)( LVDS_Panel_Timing[H_tol] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x88, 0xff, (u8)( LVDS_Panel_Timing[H_tol] / 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x89, 0xff, (u8)( LVDS_Panel_Timing[H_sync] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x8a, 0xff, (u8)( LVDS_Panel_Timing[H_bp] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x8b, 0xff, (u8)( ( LVDS_Panel_Timing[H_bp] / 256 ) * 0x80 + ( LVDS_Panel_Timing[V_sync] % 256 ) ));
+	lt8912_i2c_reg_write( main_dev, 0x8c, 0xff, (u8)( LVDS_Panel_Timing[H_act] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x8d, 0xff, (u8)( LVDS_Panel_Timing[V_act] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x8e, 0xff, (u8)( ( LVDS_Panel_Timing[V_act] / 256 ) * 0x10 + ( LVDS_Panel_Timing[H_act] / 256 ) ));
+	printf("LT8912 0x87 [%x] 0x88[%x]\n",(u8)( LVDS_Panel_Timing[H_tol] % 256 ), (u8)( LVDS_Panel_Timing[H_tol] / 256 ));
+	printf("LT8912 0x89 [%x] 0x8a[%x]\n",(u8)( LVDS_Panel_Timing[H_sync] % 256 ),(u8)( LVDS_Panel_Timing[H_bp] % 256 ));
+	printf("LT8912 0x8b [%x] 0x8c[%x]\n",(u8)( ( LVDS_Panel_Timing[H_bp] / 256 ) * 0x80 + ( LVDS_Panel_Timing[V_sync] % 256 ) ), (u8)( LVDS_Panel_Timing[H_act] % 256 ));
+	printf("LT8912 0x8d [%x] 0x8e[%x]\n", (u8)( LVDS_Panel_Timing[V_act] % 256 ),(u8)( ( LVDS_Panel_Timing[V_act] / 256 ) * 0x10 + ( LVDS_Panel_Timing[H_act] / 256 ) ));
+
+	temp_float				   = ( ( (float)( MIPI_Timing[H_act] - 1 ) ) / (float)( LVDS_Panel_Timing[H_act] - 1 ) ) * 4096;
+	Core_PLL_Ratio.Temp32  = (u32)(temp_float+0.5);
+	
+	//***********************************************************//
+	// ???????????????????Big-endian??
+
+	//lt8912_i2c_reg_write( main_dev, 0x8f, 0xff, Core_PLL_Ratio.Temp8[3]);
+	//lt8912_i2c_reg_write( main_dev, 0x90, 0xff, Core_PLL_Ratio.Temp8[2]);
+
+	// ???????????????????Little-endian??
+	temp = (u8)(Core_PLL_Ratio.Temp32&0xff);
+	lt8912_i2c_reg_write( main_dev, 0x8f, 0xff, temp);
+	printf("LT8912 0x8f [%x] \n",temp);
+	temp = (u8)((Core_PLL_Ratio.Temp32>>8) & 0xff);
+	lt8912_i2c_reg_write( main_dev, 0x90, 0xff, temp);
+	printf("LT8912 0x90 [%x] \n",temp);
+	//***********************************************************//
+
+	temp_float				   = ( ( (float)( MIPI_Timing[V_act] - 1 ) ) / (float)( LVDS_Panel_Timing[V_act] - 1 ) ) * 4096;
+	Core_PLL_Ratio.Temp32  = (u32)(temp_float+0.5);
+	//***********************************************************//
+	// ???????????????????Big-endian??
+
+	//lt8912_i2c_reg_write( main_dev, 0x91, 0xff, Core_PLL_Ratio.Temp8[3]);
+	//lt8912_i2c_reg_write( main_dev, 0x92, 0xff, Core_PLL_Ratio.Temp8[2]);
+
+	// ???????????????????Little-endian??
+	temp = (u8)(Core_PLL_Ratio.Temp32&0xff);
+	lt8912_i2c_reg_write( main_dev, 0x91, 0xff, temp);
+	printf("LT8912 0x91 [%x] \n",temp);
+	temp = (u8)((Core_PLL_Ratio.Temp32>>8) & 0xff);
+	lt8912_i2c_reg_write( main_dev, 0x92, 0xff, temp);
+	printf("LT8912 0x92 [%x] \n",temp);
+	//***********************************************************//
+
+	lt8912_i2c_reg_write( main_dev, 0x7f, 0xff, 0x9c);
+
+
+	lt8912_i2c_reg_write( main_dev, 0xa8, 0xff, _VesaJeidaMode + _DE_Sync_mode + _ColorDeepth);
+
+	mdelay( 300 );
+
+	//  void LvdsPowerUp(void)
+
+	lt8912_i2c_reg_write(main_dev, 0x44, 0xff, 0x30);
+#endif
+
+
 
 
 }
