@@ -183,6 +183,9 @@ int nxp_tmu_get_temp(struct udevice *dev, int *temp)
 		return ret;
 	}
 
+	printf("CPU Temperature (%dC) has beyond alert (%dC), close to critical (%dC)",
+		   cpu_tmp, pdata->alert, pdata->critical);
+/*  because of the tmp only can record 0~125,  when temp under 0 it is will > alert
 	while (cpu_tmp >= pdata->alert) {
 		printf("CPU Temperature (%dC) has beyond alert (%dC), close to critical (%dC)",
 		       cpu_tmp, pdata->alert, pdata->critical);
@@ -194,7 +197,7 @@ int nxp_tmu_get_temp(struct udevice *dev, int *temp)
 			return ret;
 		}
 	}
-
+*/
 	*temp = cpu_tmp / 1000;
 
 	return 0;
