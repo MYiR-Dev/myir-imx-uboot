@@ -1,0 +1,14 @@
+if  TARGET_MYD_IMX8MM_DDR4
+
+config SYS_BOARD
+	default "myd_imx8mm"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "myd_imx8mm"
+
+source "board/myir/common/Kconfig"
+
+endif
