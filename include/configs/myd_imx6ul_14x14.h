@@ -128,6 +128,7 @@
 	"boot_fdt=try\0" \
 	"ip_dyn=yes\0" \
 	"panel=MYIR-LCD-7-800x480\0" \
+	"splashpos=m,m\0" \
 	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
 	"mmcpart=" __stringify(CONFIG_SYS_MMC_IMG_LOAD_PART) "\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
