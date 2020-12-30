@@ -85,8 +85,8 @@
 	             &pinctrl_fec1_reset>;
 	phy-mode = "rmii";
 	phy-handle = <&ethphy0>;
-    phy-reset-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
-    phy-reset-duration = <26>;
+    	phy-reset-gpios = <&gpio5 9 GPIO_ACTIVE_LOW>;
+    	phy-reset-duration = <26>;
 	status = "okay";
 	mdio {
 		#address-cells = <1>;
@@ -108,8 +108,8 @@
 	             &pinctrl_fec2_reset>;
 	phy-mode = "rmii";
 	phy-handle = <&ethphy1>;
-    phy-reset-gpios = <&gpio5 6 GPIO_ACTIVE_LOW>;
-    phy-reset-duration = <26>;
+    	phy-reset-gpios = <&gpio5 6 GPIO_ACTIVE_LOW>;
+    	phy-reset-duration = <26>;
 	status = "disabled";
 
 	mdio {
