@@ -247,8 +247,8 @@
 #define CONFIG_ENV_OFFSET       (60 << 20)
 #endif
 #define CONFIG_ENV_SIZE			0x1000
-#define CONFIG_SYS_MMC_ENV_DEV		1   /* USDHC2 */
-#define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
+#define CONFIG_SYS_MMC_ENV_DEV		2   /* USDHC2 */
+#define CONFIG_MMCROOT			"/dev/mmcblk2p2"  /* USDHC2 */
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		((CONFIG_ENV_SIZE + (2*1024) + (16*1024)) * 1024)
@@ -283,11 +283,7 @@
 #define CONFIG_FSL_ESDHC
 #define CONFIG_FSL_USDHC
 
-#ifdef CONFIG_TARGET_IMX8MM_DDR4_EVK
-#define CONFIG_SYS_FSL_USDHC_NUM	1
-#else
 #define CONFIG_SYS_FSL_USDHC_NUM	2
-#endif
 #define CONFIG_SYS_FSL_ESDHC_ADDR       0
 
 #define CONFIG_SUPPORT_EMMC_BOOT	/* eMMC specific */
