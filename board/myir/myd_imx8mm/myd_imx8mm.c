@@ -118,8 +118,9 @@ static void setup_iomux_fec(void)
 
 	gpio_request(FEC_RST_PAD, "fec1_rst");
 	gpio_direction_output(FEC_RST_PAD, 0);
-	udelay(500);
+	mdelay(15);
 	gpio_direction_output(FEC_RST_PAD, 1);
+	mdelay(100);
 }
 
 static int setup_fec(void)

@@ -439,7 +439,7 @@
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy0>;
 	fsl,magic-packet;
-	phy-reset-gpios = <&gpio4 22 GPIO_ACTIVE_LOW>;
+	//phy-reset-gpios = <&gpio4 22 GPIO_ACTIVE_LOW>;
 	status = "okay";
 	
 	mdio {
