@@ -649,7 +649,8 @@ dtb-$(CONFIG_ARCH_IMX8M) += fsl-imx8mq-evk.dtb \
 		fsl-imx8mp-evk.dtb \
 		myb-imx8mm-base.dtb \
 		mys-iot-imx8mm-ddr4-evk.dtb \
-		myd-jx8mp-base.dtb
+		myd-jx8mp-base.dtb \
+		myd-jx8mx-base.dtb
 
 dtb-$(CONFIG_RCAR_GEN2) += \
 	r8a7790-lager-u-boot.dtb \

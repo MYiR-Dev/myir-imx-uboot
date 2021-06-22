@@ -117,6 +117,11 @@ config TARGET_MYD_JX8MP_LPDDR4_EVK
 	select SUPPORT_SPL
 	select IMX8M_LPDDR4
 
+config TARGET_MYD_JX8MX_LPDDR4_EVK
+	bool "myd jx8mx lpddr4 evk board"
+	select IMX8MQ
+	select IMX8M_LPDDR4
+
 endchoice
 
 source "board/freescale/imx8mq_evk/Kconfig"
@@ -129,4 +134,5 @@ source "board/freescale/imx8mp_evk/Kconfig"
 source "board/myir/myd_imx8mm/Kconfig"
 source "board/myir/mys_iot_imx8mm/Kconfig"
 source "board/myir/myd_jx8mp/Kconfig"
+source "board/myir/myd_jx8mx/Kconfig"
 endif
