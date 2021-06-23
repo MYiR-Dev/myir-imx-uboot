@@ -802,7 +802,7 @@ dtb-$(CONFIG_ARCH_IMX8M) += \
 	imx8mm-ab2.dtb \
 	imx8mn-ddr4-ab2.dtb \
 	imx8mn-ab2.dtb \
-	myd-jx8mx-base.dtb
+	myd-jx8mp-base.dtb
 
 dtb-$(CONFIG_ARCH_IMXRT) += imxrt1050-evk.dtb
 
