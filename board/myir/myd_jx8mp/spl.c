@@ -1,10 +1,12 @@
 /*
- * Copyright 2019 NXP
+ * Copyright 2018-2019 NXP
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
 #include <common.h>
+#include <cpu_func.h>
+#include <hang.h>
 #include <spl.h>
 #include <asm/io.h>
 #include <errno.h>
@@ -12,23 +14,51 @@
 #include <asm/mach-imx/iomux-v3.h>
 #include <asm/arch/imx8mp_pins.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/mach-imx/boot_mode.h>
 #include <power/pmic.h>
+
 #include <power/pca9450.h>
 #include <asm/arch/clock.h>
 #include <asm/mach-imx/gpio.h>
 #include <asm/mach-imx/mxc_i2c.h>
-#include <fsl_esdhc.h>
+#include <fsl_esdhc_imx.h>
 #include <mmc.h>
 #include <asm/arch/ddr.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+int spl_board_boot_device(enum boot_device boot_dev_spl)
+{
+#ifdef CONFIG_SPL_BOOTROM_SUPPORT
+	return BOOT_DEVICE_BOOTROM;
+#else
+	switch (boot_dev_spl) {
+	case SD1_BOOT:
+	case MMC1_BOOT:
+	case SD2_BOOT:
+	case MMC2_BOOT:
+		return BOOT_DEVICE_MMC1;
+	case SD3_BOOT:
+	case MMC3_BOOT:
+		return BOOT_DEVICE_MMC2;
+	case QSPI_BOOT:
+		return BOOT_DEVICE_NOR;
+	case NAND_BOOT:
+		return BOOT_DEVICE_NAND;
+	case USB_BOOT:
+		return BOOT_DEVICE_BOARD;
+	default:
+		return BOOT_DEVICE_NONE;
+	}
+#endif
+}
 
 void spl_dram_init(void)
 {
 	ddr_init(&dram_timing);
 }
 
-#define I2C_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE)
+#define I2C_PAD_CTRL (PAD_CTL_DSE6 | PAD_CTL_HYS | PAD_CTL_PUE | PAD_CTL_PE)
 #define PC MUX_PAD_CTRL(I2C_PAD_CTRL)
 struct i2c_pads_info i2c_pad_info1 = {
 	.scl = {
@@ -157,16 +187,32 @@ int power_init_board(void)
 	/* BUCKxOUT_DVS0/1 control BUCK123 output */
 	pmic_reg_write(p, PCA9450_BUCK123_DVS, 0x29);
 
-	/* increase VDD_SOC to typical value 0.95V before first DRAM access */
-	/* Set DVS1 to 0.85v for suspend */
-	/* Enable DVS control through PMIC_STBY_REQ and set B1_ENMODE=1 (ON by PMIC_ON_REQ=H) */
+#ifdef CONFIG_IMX8M_LPDDR4
+	/*
+	 * increase VDD_SOC to typical value 0.95V before first
+	 * DRAM access, set DVS1 to 0.85v for suspend.
+	 * Enable DVS control through PMIC_STBY_REQ and
+	 * set B1_ENMODE=1 (ON by PMIC_ON_REQ=H)
+	 */
+#ifdef CONFIG_IMX8M_VDD_SOC_850MV
+	/* set DVS0 to 0.85v for special case*/
+	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS0, 0x14);
+#else
 	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS0, 0x1C);
+#endif
 	pmic_reg_write(p, PCA9450_BUCK1OUT_DVS1, 0x14);
 	pmic_reg_write(p, PCA9450_BUCK1CTRL, 0x59);
 
 	/* Kernel uses OD/OD freq for SOC */
 	/* To avoid timing risk from SOC to ARM,increase VDD_ARM to OD voltage 0.95v */
 	pmic_reg_write(p, PCA9450_BUCK2OUT_DVS0, 0x1C);
+#elif defined(CONFIG_IMX8M_DDR4)
+	/* DDR4 runs at 3200MTS, uses default ND 0.85v for VDD_SOC and VDD_ARM */
+	pmic_reg_write(p, PCA9450_BUCK1CTRL, 0x59);
+
+	/* Set NVCC_DRAM to 1.2v for DDR4 */
+	pmic_reg_write(p, PCA9450_BUCK6OUT, 0x18);
+#endif
 
 	/* set WDOG_B_CFG to cold reset */
 	pmic_reg_write(p, PCA9450_RESET_CTRL, 0xA1);
@@ -177,6 +223,16 @@ int power_init_board(void)
 
 void spl_board_init(void)
 {
+	/* Set GIC clock to 500Mhz for OD VDD_SOC. Kernel driver does not allow to change it.
+	 * Should set the clock after PMIC setting done.
+	 * Default is 400Mhz (system_pll1_800m with div = 2) set by ROM for ND VDD_SOC
+	 */
+#ifdef CONFIG_IMX8M_LPDDR4
+	clock_enable(CCGR_GIC, 0);
+	clock_set_target_val(GIC_CLK_ROOT, CLK_ROOT_ON | CLK_ROOT_SOURCE_SEL(5));
+	clock_enable(CCGR_GIC, 1);
+#endif
+
 	puts("Normal Boot\n");
 }
 
@@ -222,4 +278,13 @@ void board_init_f(ulong dummy)
 	spl_dram_init();
 
 	board_init_r(NULL, 0);
+}
+
+int do_reset(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	puts("resetting ...\n");
+
+	reset_cpu(WDOG1_BASE_ADDR);
+
+	return 0;
 }
