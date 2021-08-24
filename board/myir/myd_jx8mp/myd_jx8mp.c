@@ -458,8 +458,13 @@ static iomux_v3_cfg_t const m2_keyb_reset[] = {
 	MX8MP_PAD_SAI1_RXFS__GPIO4_IO00 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
+static iomux_v3_cfg_t const pcie_clk[] = {
+	MX8MP_IOMUXC_SAI5_RXD0__GPIO3_IO21 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
 
 #define M2_KEYB_RESET IMX_GPIO_NR(4, 0)
+#define PCIE_CLK IMX_GPIO_NR(3, 21)
 
 void myir_pin_init(void)
 {
@@ -467,6 +472,12 @@ void myir_pin_init(void)
 
 	gpio_request(M2_KEYB_RESET, "M2_KEYB_RESET");
 	gpio_direction_output(M2_KEYB_RESET, 1);
+
+
+	imx_iomux_v3_setup_multiple_pads(pcie_clk, ARRAY_SIZE(pcie_clk));
+
+	gpio_request(PCIE_CLK, "PCIE_CLK");
+	gpio_direction_output(PCIE_CLK, 1);
 
 }
 
