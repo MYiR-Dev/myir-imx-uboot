@@ -477,7 +477,7 @@ void myir_pin_init(void)
 	imx_iomux_v3_setup_multiple_pads(pcie_clk, ARRAY_SIZE(pcie_clk));
 
 	gpio_request(PCIE_CLK, "PCIE_CLK_TEST");
-	gpio_direction_output(PCIE_CLK, 0);
+	gpio_direction_output(PCIE_CLK, 1);
 
 }
 
