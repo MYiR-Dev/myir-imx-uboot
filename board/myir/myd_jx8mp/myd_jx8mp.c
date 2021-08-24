@@ -459,7 +459,7 @@ static iomux_v3_cfg_t const m2_keyb_reset[] = {
 };
 
 static iomux_v3_cfg_t const pcie_clk[] = {
-	MX8MP_IOMUXC_SAI5_RXD0__GPIO3_IO21 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX8MP_PAD_SAI5_RXD0__GPIO3_IO21 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
 
@@ -476,7 +476,7 @@ void myir_pin_init(void)
 
 	imx_iomux_v3_setup_multiple_pads(pcie_clk, ARRAY_SIZE(pcie_clk));
 
-	gpio_request(PCIE_CLK, "PCIE_CLK");
+	gpio_request(PCIE_CLK, "PCIE_CLK_TEST");
 	gpio_direction_output(PCIE_CLK, 0);
 
 }
