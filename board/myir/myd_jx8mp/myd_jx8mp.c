@@ -22,6 +22,8 @@
 #include <usb.h>
 #include <dwc3-uboot.h>
 #include <mmc.h>
+#include <spi.h>
+#include <spi_flash.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -544,6 +546,103 @@ int board_init(void)
 	return 0;
 }
 
+struct myd_jx8mp_st{
+	char pn[256];
+	char sn[256];
+	char mac0[256];
+	char mac1[256];
+	char reserve[1024];
+
+};
+#define FACTORY_DATA_OFFS 0x1f00000
+
+static void factory_data_env_config(void)
+{
+	struct myd_jx8mp_st param;
+	struct spi_flash *sf;
+	int env_updated = 0;
+	char *env;
+	int ret;
+	char mac0[18]={0};
+	char mac1[18]={0};
+	int i,j;
+
+
+	/*
+	 * Get values from factory-data area in SPI NOR
+	 */
+	sf = spi_flash_probe(CONFIG_SF_DEFAULT_BUS,
+			     CONFIG_SF_DEFAULT_CS,
+			     CONFIG_SF_DEFAULT_SPEED,
+			     CONFIG_SF_DEFAULT_MODE);
+	if (!sf) {
+		printf("F-Data:Unable to access SPI NOR flash\n");
+		goto err;
+	}
+
+	ret = spi_flash_read(sf, FACTORY_DATA_OFFS, sizeof(param),
+			     (void *)&(param));
+	if (ret) {
+		printf("F-Data:Unable to read factory-data from SPI NOR\n");
+		goto err;
+	}
+	printf("\n");
+
+	printf(">>>PN=%s\n",param.pn);
+	printf(">>>SN=%s\n",param.sn);
+	if(!is_valid_ethaddr(param.mac0)){
+		memset(mac0,0,sizeof(mac0));
+		for(i =j=  0;i<12; i++){
+			if(i !=0 && i%2 == 0)
+				mac0[j++]=':';
+			mac0[j++]=param.mac0[i];
+	
+
+		}
+		
+		printf(">>>MAC0=%s\n",mac0);
+
+		env = env_get("ethaddr");
+		if (strcmp(env, mac0)) {
+			env_set("ethaddr",mac0);
+			env_updated=1;
+		}
+		
+	}
+	if(!is_valid_ethaddr(param.mac1)){
+		memset(mac0,0,sizeof(mac1));
+		for(i =j=  0;i<12; i++){
+			if(i !=0 && i%2 == 0)
+				mac1[j++]=':';
+			mac1[j++]=param.mac1[i];
+				
+
+		}
+		
+		printf(">>>MAC1=%s\n",mac1);
+
+		env = env_get("eth1addr");
+		if (strcmp(env, mac1)) {
+			env_set("eth1addr",mac1);
+			env_updated=1;
+		}
+	}
+	/* Check if the environment was updated and needs to get stored */
+	if (env_updated != 0) {
+		printf("F-Data:Values don't match env values -> saving\n");
+		env_save();
+	} else {
+		debug("F-Data:Values match current env values\n");
+	}
+
+
+	spi_flash_free(sf);
+
+err:
+	;
+}
+
+
 int board_late_init(void)
 {
 #ifdef CONFIG_ENV_IS_IN_MMC
@@ -553,6 +652,7 @@ int board_late_init(void)
 	env_set("board_name", "EVK");
 	env_set("board_rev", "iMX8MP");
 #endif
+	factory_data_env_config();
 
 	return 0;
 }
