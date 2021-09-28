@@ -590,15 +590,11 @@ static void factory_data_env_config(void)
 
 	printf(">>>PN=%s\n",param.pn);
 	printf(">>>SN=%s\n",param.sn);
-	if(!is_valid_ethaddr(param.mac0)){
+	if(is_valid_ethaddr(param.mac0)){
 		memset(mac0,0,sizeof(mac0));
-		for(i =j=  0;i<12; i++){
-			if(i !=0 && i%2 == 0)
-				mac0[j++]=':';
-			mac0[j++]=param.mac0[i];
-	
+		snprintf(mac0,sizeof(mac0),"%02x:%02x:%02x:%02x:%02x:%02x",
+			param.mac0[0],param.mac0[1],param.mac0[2],param.mac0[3],param.mac0[4],param.mac0[5]);
 
-		}
 		
 		printf(">>>MAC0=%s\n",mac0);
 
@@ -609,15 +605,11 @@ static void factory_data_env_config(void)
 		}
 		
 	}
-	if(!is_valid_ethaddr(param.mac1)){
-		memset(mac0,0,sizeof(mac1));
-		for(i =j=  0;i<12; i++){
-			if(i !=0 && i%2 == 0)
-				mac1[j++]=':';
-			mac1[j++]=param.mac1[i];
-				
+	if(is_valid_ethaddr(param.mac1)){
+		memset(mac1,0,sizeof(mac1));
+		snprintf(mac1,sizeof(mac1),"%02x:%02x:%02x:%02x:%02x:%02x",
+			param.mac1[0],param.mac1[1],param.mac1[2],param.mac1[3],param.mac1[4],param.mac1[5]);
 
-		}
 		
 		printf(">>>MAC1=%s\n",mac1);
 
