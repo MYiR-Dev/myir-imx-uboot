@@ -174,4 +174,10 @@ config KEYSTONE_USB_PHY
 
 	  This PHY is found on some Keystone (K2) devices supporting USB.
 
+config MOTORCOMM_YT
+        bool "motorcomm yt8511/yt8521 phy"
+        default n
+        help
+          delay
+
 endmenu

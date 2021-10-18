@@ -117,10 +117,16 @@ static void setup_iomux_fec(void)
 					 ARRAY_SIZE(fec1_rst_pads));
 
 	gpio_request(FEC_RST_PAD, "fec1_rst");
+
+#ifdef  CONFIG_MOTORCOMM_YT 
+        gpio_direction_output(FEC_RST_PAD, 1);
+        mdelay(10);
+        gpio_direction_output(FEC_RST_PAD, 0);
+#else
 	gpio_direction_output(FEC_RST_PAD, 0);
-	mdelay(15);
+	mdelay(10);
 	gpio_direction_output(FEC_RST_PAD, 1);
-	mdelay(100);
+#endif
 }
 
 static int setup_fec(void)
