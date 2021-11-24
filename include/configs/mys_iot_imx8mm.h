@@ -220,7 +220,7 @@
 			   "else "\
 			       "if test ${mmcdev} = 1; then "\
 				       "run bootfix; " \
-				   "else "\ 
+				   "else "\
 					   "run netboot; " \
 				   "fi;" \
 			   "fi; " \
