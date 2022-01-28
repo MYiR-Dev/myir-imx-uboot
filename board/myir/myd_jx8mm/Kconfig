@@ -1,0 +1,14 @@
+if  TARGET_MYD_JX8MM_LPDDR4
+
+config SYS_BOARD
+	default "myd_jx8mm"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "myd_jx8mm"
+
+source "board/myir/common/Kconfig"
+
+endif

@@ -648,6 +648,7 @@ dtb-$(CONFIG_ARCH_IMX8M) += fsl-imx8mq-evk.dtb \
 		fsl-imx8mq-aiy.dtb \
 		fsl-imx8mp-evk.dtb \
 		myb-imx8mm-base.dtb \
+		myb-jx8mm-base.dtb \
 		mys-iot-imx8mm-ddr4-evk.dtb \
 		myd-jx8mp-base.dtb \
 		myd-jx8mx-base.dtb
