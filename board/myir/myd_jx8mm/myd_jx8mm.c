@@ -105,6 +105,11 @@ int board_early_init_f(void)
 	return 0;
 }
 
+#define LT8912_RST_PAD IMX_GPIO_NR(1, 13)
+static iomux_v3_cfg_t const lt8912_rst_pads[] = {
+	        IMX8MM_PAD_GPIO1_IO13_GPIO1_IO13 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
 #ifdef CONFIG_FEC_MXC
 #define FEC_RST_PAD IMX_GPIO_NR(1, 5)
 static iomux_v3_cfg_t const fec1_rst_pads[] = {
@@ -348,6 +353,115 @@ int board_init(void)
 
 #ifdef CONFIG_VIDEO_MXS
 
+
+#define _LVDS_Output_ 1
+#ifdef _LVDS_Output_
+
+// ????LVDS????CLK??
+#define Panel_Pixel_CLK 5920    // 65MHz * 100
+
+//--------------------------------------------//
+// ????LVDS?????
+#define _8_Bit_Color_           // 24 bit
+//  #define _6_Bit_Color_ // 18 bit
+
+// ????LVDS?????
+#define _VESA_
+//#define _JEIDA_
+
+//#define _De_mode_
+#define _Sync_Mode_
+
+//--------------------------------------------//
+
+#ifdef _VESA_
+#define _VesaJeidaMode 0x00
+#else
+#define _VesaJeidaMode 0x20
+#endif
+
+#ifdef _De_mode_
+#define _DE_Sync_mode 0x08
+#else
+#define _DE_Sync_mode 0x00
+#endif
+
+#ifdef _8_Bit_Color_
+#define _ColorDeepth 0x13
+#else
+#define _ColorDeepth 0x17
+#endif
+
+//--------------------------------------------//
+
+// ???????????????????? LVDS ????Timing:
+static int LVDS_Panel_Timing[] =
+//  H_act	 V_act	 H_total V_total H_BP	 H_sync  V_sync  V_BP
+{ 1024, 600, 1344, 635, 140, 20, 3, 20 };       // 1024x600 Timing
+//{ 1024, 768, 1344, 806, 160, 136, 6, 29 };  // 1024x768 Timing
+
+union Temp
+{
+	u8	Temp8[4];
+	u16 Temp16[2];
+	u32 Temp32;
+};
+
+#endif
+
+
+
+
+#define LT8912_MAIN 0x48
+#define LT8912_SECOND 0x49
+#define LT8912_THIRD 0x4a
+
+enum
+{
+	H_act = 0,
+	V_act,
+	H_tol,
+	V_tol,
+	H_bp,
+	H_sync,
+	V_sync,
+	V_bp
+};
+
+enum {
+	 _32KHz = 0,
+	 _44d1KHz,
+	 _48KHz,
+
+	 _88d2KHz,
+	 _96KHz,
+	 _176Khz,
+	 _196KHz
+};
+
+u16 IIS_N[] = 
+{
+	4096, // 32K
+	6272, // 44.1K
+	6144, // 48K
+	12544, // 88.2K
+	12288, // 96K
+	25088, // 176K
+	24576 // 196K
+};
+
+
+u16 Sample_Freq[]=
+{
+	0x30, // 32K
+	0x00, // 44.1K
+	0x20, // 48K
+	0x80, // 88.2K
+	0xa0, // 96K
+	0xc0, // 176K
+	0xe0 //  196K
+};
+
 #define ADV7535_MAIN 0x3d
 #define ADV7535_DSI_CEC 0x3c
 
@@ -359,7 +473,7 @@ static const struct sec_mipi_dsim_plat_data imx8mm_mipi_dsim_plat_data = {
 	.gpr_base = CSI_BASE_ADDR + 0x8000,
 };
 
-static int adv7535_i2c_reg_write(struct udevice *dev, uint addr, uint mask, uint data)
+static int lt8912_i2c_reg_write(struct udevice *dev, uint addr, uint mask, uint data)
 {
 	uint8_t valb;
 	int err;
@@ -379,7 +493,7 @@ static int adv7535_i2c_reg_write(struct udevice *dev, uint addr, uint mask, uint
 	return err;
 }
 
-static int adv7535_i2c_reg_read(struct udevice *dev, uint8_t addr, uint8_t *data)
+static int lt8912_i2c_reg_read(struct udevice *dev, uint8_t addr, uint8_t *data)
 {
 	uint8_t valb;
 	int err;
@@ -392,12 +506,34 @@ static int adv7535_i2c_reg_read(struct udevice *dev, uint8_t addr, uint8_t *data
 	return 0;
 }
 
-static void adv7535_init(void)
+static void lt8912_init(void)
 {
-	struct udevice *bus, *main_dev, *cec_dev;
-	int i2c_bus = 1;
+	struct udevice *bus, *main_dev, *cec_dev,*third_dev;
+	int i2c_bus = 3;
 	int ret;
+	unsigned int version[2];
 	uint8_t val;
+	static int MIPI_Timing[]={1920,1080,2200,1125,148,44,5,36};
+	static int MIPI_Lane=4;
+	unsigned char HDMI_VIC = 0x10;   // vic ,0x10: 1080P ;  0x04 : 720P ; Refer to the following list
+
+
+#ifdef _LVDS_Output_
+	
+	union Temp	Core_PLL_Ratio;
+	float       lvds_clock = 51.2; //MHZ
+	float		f_DIV;
+	float temp_float;
+	u8     temp;
+#endif
+
+	imx_iomux_v3_setup_multiple_pads(lt8912_rst_pads,ARRAY_SIZE(lt8912_rst_pads));
+
+	gpio_request(LT8912_RST_PAD, "LT8912 RESET");
+	gpio_direction_output(IMX_GPIO_NR(1, 13), 0);
+	mdelay(100);
+	gpio_direction_output(IMX_GPIO_NR(1, 13), 1);
+
 
 	ret = uclass_get_device_by_seq(UCLASS_I2C, i2c_bus, &bus);
 	if (ret) {
@@ -405,91 +541,327 @@ static void adv7535_init(void)
 		return;
 	}
 
-	ret = dm_i2c_probe(bus, ADV7535_MAIN, 0, &main_dev);
+	ret = dm_i2c_probe(bus, LT8912_MAIN, 0, &main_dev);
 	if (ret) {
 		printf("%s: Can't find device id=0x%x, on bus %d\n",
-			__func__, ADV7535_MAIN, i2c_bus);
+			__func__, LT8912_MAIN, i2c_bus);
 		return;
 	}
 
-	ret = dm_i2c_probe(bus, ADV7535_DSI_CEC, 0, &cec_dev);
+	ret = dm_i2c_probe(bus, LT8912_SECOND, 0, &cec_dev);
 	if (ret) {
 		printf("%s: Can't find device id=0x%x, on bus %d\n",
-			__func__, ADV7535_MAIN, i2c_bus);
+			__func__, LT8912_SECOND, i2c_bus);
 		return;
 	}
 
-	adv7535_i2c_reg_read(main_dev, 0x00, &val);
-	debug("Chip revision: 0x%x (expected: 0x14)\n", val);
-	adv7535_i2c_reg_read(cec_dev, 0x00, &val);
-	debug("Chip ID MSB: 0x%x (expected: 0x75)\n", val);
-	adv7535_i2c_reg_read(cec_dev, 0x01, &val);
-	debug("Chip ID LSB: 0x%x (expected: 0x33)\n", val);
+	ret = dm_i2c_probe(bus, LT8912_THIRD, 0, &third_dev);
+	if (ret) {
+		printf("%s: Can't find device id=0x%x, on bus %d\n",
+			__func__, LT8912_THIRD, i2c_bus);
+		return;
+	}
 
-	/* Power */
-	adv7535_i2c_reg_write(main_dev, 0x41, 0xff, 0x10);
-	/* Initialisation (Fixed) Registers */
-	adv7535_i2c_reg_write(main_dev, 0x16, 0xff, 0x20);
-	adv7535_i2c_reg_write(main_dev, 0x9A, 0xff, 0xE0);
-	adv7535_i2c_reg_write(main_dev, 0xBA, 0xff, 0x70);
-	adv7535_i2c_reg_write(main_dev, 0xDE, 0xff, 0x82);
-	adv7535_i2c_reg_write(main_dev, 0xE4, 0xff, 0x40);
-	adv7535_i2c_reg_write(main_dev, 0xE5, 0xff, 0x80);
-	adv7535_i2c_reg_write(cec_dev, 0x15, 0xff, 0xD0);
-	adv7535_i2c_reg_write(cec_dev, 0x17, 0xff, 0xD0);
-	adv7535_i2c_reg_write(cec_dev, 0x24, 0xff, 0x20);
-	adv7535_i2c_reg_write(cec_dev, 0x57, 0xff, 0x11);
-	/* 4 x DSI Lanes */
-	adv7535_i2c_reg_write(cec_dev, 0x1C, 0xff, 0x40);
+	lt8912_i2c_reg_read(main_dev, 0x00, &version[0]);
+	lt8912_i2c_reg_read(main_dev, 0x01, &version[1]);
 
-	/* DSI Pixel Clock Divider */
-	adv7535_i2c_reg_write(cec_dev, 0x16, 0xff, 0x18);
+	printf("LT8912 ID: %02x, %02x\n",version[0], version[1]);
 
-	/* Enable Internal Timing Generator */
-	adv7535_i2c_reg_write(cec_dev, 0x27, 0xff, 0xCB);
-	/* 1920 x 1080p 60Hz */
-	adv7535_i2c_reg_write(cec_dev, 0x28, 0xff, 0x89); /* total width */
-	adv7535_i2c_reg_write(cec_dev, 0x29, 0xff, 0x80); /* total width */
-	adv7535_i2c_reg_write(cec_dev, 0x2A, 0xff, 0x02); /* hsync */
-	adv7535_i2c_reg_write(cec_dev, 0x2B, 0xff, 0xC0); /* hsync */
-	adv7535_i2c_reg_write(cec_dev, 0x2C, 0xff, 0x05); /* hfp */
-	adv7535_i2c_reg_write(cec_dev, 0x2D, 0xff, 0x80); /* hfp */
-	adv7535_i2c_reg_write(cec_dev, 0x2E, 0xff, 0x09); /* hbp */
-	adv7535_i2c_reg_write(cec_dev, 0x2F, 0xff, 0x40); /* hbp */
 
-	adv7535_i2c_reg_write(cec_dev, 0x30, 0xff, 0x46); /* total height */
-	adv7535_i2c_reg_write(cec_dev, 0x31, 0xff, 0x50); /* total height */
-	adv7535_i2c_reg_write(cec_dev, 0x32, 0xff, 0x00); /* vsync */
-	adv7535_i2c_reg_write(cec_dev, 0x33, 0xff, 0x50); /* vsync */
-	adv7535_i2c_reg_write(cec_dev, 0x34, 0xff, 0x00); /* vfp */
-	adv7535_i2c_reg_write(cec_dev, 0x35, 0xff, 0x40); /* vfp */
-	adv7535_i2c_reg_write(cec_dev, 0x36, 0xff, 0x02); /* vbp */
-	adv7535_i2c_reg_write(cec_dev, 0x37, 0xff, 0x40); /* vbp */
+#ifdef _LVDS_Output_
+	/* DigitalClockEn */
+	lt8912_i2c_reg_write(main_dev, 0x08,0xff, 0xff);
+	lt8912_i2c_reg_write(main_dev, 0x09,0xff, 0xff);
+	lt8912_i2c_reg_write(main_dev, 0x0a,0xff, 0xff);
+	lt8912_i2c_reg_write(main_dev, 0x0b,0xff, 0x7c);
+	lt8912_i2c_reg_write(main_dev, 0x0c,0xff, 0xff);
 
-	/* Reset Internal Timing Generator */
-	adv7535_i2c_reg_write(cec_dev, 0x27, 0xff, 0xCB);
-	adv7535_i2c_reg_write(cec_dev, 0x27, 0xff, 0x8B);
-	adv7535_i2c_reg_write(cec_dev, 0x27, 0xff, 0xCB);
 
-	/* HDMI Output */
-	adv7535_i2c_reg_write(main_dev, 0xAF, 0xff, 0x16);
-	/* AVI Infoframe - RGB - 16-9 Aspect Ratio */
-	adv7535_i2c_reg_write(main_dev, 0x55, 0xff, 0x02);
-	adv7535_i2c_reg_write(main_dev, 0x56, 0xff, 0x0);
+	lt8912_i2c_reg_write(main_dev, 0x51,0xff, 0x15);
+#else
 
-	/*  GC Packet Enable */
-	adv7535_i2c_reg_write(main_dev, 0x40, 0xff, 0x0);
-	/*  GC Colour Depth - 24 Bit */
-	adv7535_i2c_reg_write(main_dev, 0x4C, 0xff, 0x0);
-	/*  Down Dither Output Colour Depth - 8 Bit (default) */
-	adv7535_i2c_reg_write(main_dev, 0x49, 0xff, 0x00);
+	/* DigitalClockEn */
+	lt8912_i2c_reg_write(main_dev, 0x08,0xff, 0xff);
+	lt8912_i2c_reg_write(main_dev, 0x09,0xff, 0x81);
+	lt8912_i2c_reg_write(main_dev, 0x0a,0xff, 0xff);
+	lt8912_i2c_reg_write(main_dev, 0x0b,0xff, 0x64);
+	lt8912_i2c_reg_write(main_dev, 0x0c,0xff, 0xff);
 
-	/* set low refresh 1080p30 */
-	adv7535_i2c_reg_write(main_dev, 0x4A, 0xff, 0x80); /*should be 0x80 for 1080p60 and 0x8c for 1080p30*/
+	lt8912_i2c_reg_write(main_dev, 0x44,0xff, 0x31);
+	lt8912_i2c_reg_write(main_dev, 0x51,0xff, 0x1f);
+#endif
 
-	/* HDMI Output Enable */
-	adv7535_i2c_reg_write(cec_dev, 0xbe, 0xff, 0x3c);
-	adv7535_i2c_reg_write(cec_dev, 0x03, 0xff, 0x89);
+	/* TxAnalog */
+	lt8912_i2c_reg_write(main_dev, 0x31,0xff, 0xa1);
+	lt8912_i2c_reg_write(main_dev, 0x32,0xff, 0xbf);
+	lt8912_i2c_reg_write(main_dev, 0x33,0xff, 0x17);
+	lt8912_i2c_reg_write(main_dev, 0x37,0xff, 0x00);
+	lt8912_i2c_reg_write(main_dev, 0x38,0xff, 0x22);
+	lt8912_i2c_reg_write(main_dev, 0x60,0xff, 0x82);
+
+	lt8912_i2c_reg_write(main_dev, 0x3a,0xff, 0x00);
+
+	/* CbusAnalog */
+	lt8912_i2c_reg_write(main_dev, 0x39,0xff, 0x45);
+	lt8912_i2c_reg_write(main_dev, 0x3b,0xff, 0x00);
+
+	// MIPIAnalog()
+	lt8912_i2c_reg_write(main_dev, 0x3e,0xff, 0xc6);
+	lt8912_i2c_reg_write(main_dev, 0x41,0xff, 0x7c);
+
+	/* HDMIPllAnalog */
+	lt8912_i2c_reg_write(main_dev, 0x44,0xff, 0x31);
+	lt8912_i2c_reg_write(main_dev, 0x55,0xff, 0x44);
+	lt8912_i2c_reg_write(main_dev, 0x57,0xff, 0x01);
+	lt8912_i2c_reg_write(main_dev, 0x5a,0xff, 0x02);
+
+
+
+	/* MipiBasicSet */
+	lt8912_i2c_reg_write(cec_dev, 0x10,0xff, 0x01);
+	lt8912_i2c_reg_write(cec_dev, 0x11,0xff, 0x08);
+	lt8912_i2c_reg_write(cec_dev, 0x12,0xff, 0x04);
+	lt8912_i2c_reg_write(cec_dev, 0x13,0xff, MIPI_Lane %4); /*lanes %4 */
+	lt8912_i2c_reg_write(cec_dev, 0x14,0xff, 0x00);
+
+	lt8912_i2c_reg_write(cec_dev, 0x15,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x1a,0xff, 0x03);
+	lt8912_i2c_reg_write(cec_dev, 0x1b,0xff, 0x03);
+
+
+#ifdef _LVDS_Output_
+	//	void LvdsPowerDown(void)
+	lt8912_i2c_reg_write(main_dev, 0x44,0xff, 0x31);
+#endif
+
+
+	/* MIPIDig */
+	lt8912_i2c_reg_write(cec_dev, 0x18,0xff, (u8)( MIPI_Timing[H_sync] % 256 )); /*hsync%256 */
+	lt8912_i2c_reg_write(cec_dev, 0x19,0xff, (u8)( MIPI_Timing[V_sync] % 256 )); /* vsync%256*/
+	lt8912_i2c_reg_write(cec_dev, 0x1c,0xff, (u8)( MIPI_Timing[H_act] % 256 )); /* hactive %256*/
+	lt8912_i2c_reg_write(cec_dev, 0x1d,0xff, (u8)( MIPI_Timing[H_act] / 256 )); /* hactive/256 */
+
+	lt8912_i2c_reg_write(cec_dev, 0x1e,0xff, 0x67);
+	lt8912_i2c_reg_write(cec_dev, 0x2f,0xff, 0x0c);
+
+	lt8912_i2c_reg_write(cec_dev, 0x34,0xff, (u8)( MIPI_Timing[H_tol] % 256 )); /* htotal%256 */
+	lt8912_i2c_reg_write(cec_dev, 0x35,0xff, (u8)( MIPI_Timing[H_tol] / 256 )); /* htotal/256 */
+	lt8912_i2c_reg_write(cec_dev, 0x36,0xff, (u8)( MIPI_Timing[V_tol] % 256 )); /* vtotal%256 */
+	lt8912_i2c_reg_write(cec_dev, 0x37,0xff, (u8)( MIPI_Timing[V_tol] / 256 )); /* vtotal/256 */
+	lt8912_i2c_reg_write(cec_dev, 0x38,0xff, (u8)( MIPI_Timing[V_bp] % 256 )); /* vbp%256 */
+	lt8912_i2c_reg_write(cec_dev, 0x39,0xff, (u8)( MIPI_Timing[V_bp] / 256 )); /* vbp/256 */
+	lt8912_i2c_reg_write(cec_dev, 0x3a,0xff, (u8)( ( MIPI_Timing[V_tol] - MIPI_Timing[V_act] - MIPI_Timing[V_bp] - MIPI_Timing[V_sync] ) % 256 )); /* vfp % 0x100 */
+	lt8912_i2c_reg_write(cec_dev, 0x3b,0xff, (u8)( ( MIPI_Timing[V_tol] - MIPI_Timing[V_act] - MIPI_Timing[V_bp] - MIPI_Timing[V_sync] ) / 256)); /* vfp >> 8 */
+	lt8912_i2c_reg_write(cec_dev, 0x3c,0xff, (u8)( MIPI_Timing[H_bp] % 256 )); /* hbp % 0x100 */
+	lt8912_i2c_reg_write(cec_dev, 0x3d,0xff, (u8)( MIPI_Timing[H_bp] / 256 )); /* hbp >> 8 */
+	lt8912_i2c_reg_write(cec_dev, 0x3e,0xff, (u8)( ( MIPI_Timing[H_tol] - MIPI_Timing[H_act] - MIPI_Timing[H_bp] - MIPI_Timing[H_sync] ) % 256 )); /* hfp % 0x100 */
+	lt8912_i2c_reg_write(cec_dev, 0x3f,0xff, (u8)( ( MIPI_Timing[H_tol] - MIPI_Timing[H_act] - MIPI_Timing[H_bp] - MIPI_Timing[H_sync] ) / 256 )); /*  hfp >> 8 */
+
+
+	/* DDSConfig */
+	lt8912_i2c_reg_write(cec_dev, 0x4e,0xff, 0x52);
+	lt8912_i2c_reg_write(cec_dev, 0x4f,0xff, 0xde);
+	lt8912_i2c_reg_write(cec_dev, 0x50,0xff, 0xc0);
+	lt8912_i2c_reg_write(cec_dev, 0x51,0xff, 0x80);
+	lt8912_i2c_reg_write(cec_dev, 0x51,0xff, 0x00);
+
+	lt8912_i2c_reg_write(cec_dev, 0x1f,0xff, 0x5e);
+	lt8912_i2c_reg_write(cec_dev, 0x20,0xff, 0x01);
+	lt8912_i2c_reg_write(cec_dev, 0x21,0xff, 0x2c);
+	lt8912_i2c_reg_write(cec_dev, 0x22,0xff, 0x01);
+	lt8912_i2c_reg_write(cec_dev, 0x23,0xff, 0xfa);
+	lt8912_i2c_reg_write(cec_dev, 0x24,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x25,0xff, 0xc8);
+	lt8912_i2c_reg_write(cec_dev, 0x26,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x27,0xff, 0x5e);
+	lt8912_i2c_reg_write(cec_dev, 0x28,0xff, 0x01);
+	lt8912_i2c_reg_write(cec_dev, 0x29,0xff, 0x2c);
+	lt8912_i2c_reg_write(cec_dev, 0x2a,0xff, 0x01);
+	lt8912_i2c_reg_write(cec_dev, 0x2b,0xff, 0xfa);
+	lt8912_i2c_reg_write(cec_dev, 0x2c,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x2d,0xff, 0xc8);
+	lt8912_i2c_reg_write(cec_dev, 0x2e,0xff, 0x00);
+
+	lt8912_i2c_reg_write(main_dev, 0x03,0xff, 0x7f);
+	mdelay(10);
+	lt8912_i2c_reg_write(main_dev, 0x03,0xff, 0xff);
+
+	lt8912_i2c_reg_write(cec_dev, 0x42,0xff, 0x64);
+	lt8912_i2c_reg_write(cec_dev, 0x43,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x44,0xff, 0x04);
+	lt8912_i2c_reg_write(cec_dev, 0x45,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x46,0xff, 0x59);
+	lt8912_i2c_reg_write(cec_dev, 0x47,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x48,0xff, 0xf2);
+	lt8912_i2c_reg_write(cec_dev, 0x49,0xff, 0x06);
+	lt8912_i2c_reg_write(cec_dev, 0x4a,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x4b,0xff, 0x72);
+	lt8912_i2c_reg_write(cec_dev, 0x4c,0xff, 0x45);
+	lt8912_i2c_reg_write(cec_dev, 0x4d,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x52,0xff, 0x08);
+	lt8912_i2c_reg_write(cec_dev, 0x53,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x54,0xff, 0xb2);
+	lt8912_i2c_reg_write(cec_dev, 0x55,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x56,0xff, 0xe4);
+	lt8912_i2c_reg_write(cec_dev, 0x57,0xff, 0x0d);
+	lt8912_i2c_reg_write(cec_dev, 0x58,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x59,0xff, 0xe4);
+	lt8912_i2c_reg_write(cec_dev, 0x5a,0xff, 0x8a);
+	lt8912_i2c_reg_write(cec_dev, 0x5b,0xff, 0x00);
+	lt8912_i2c_reg_write(cec_dev, 0x5c,0xff, 0x34);
+	lt8912_i2c_reg_write(cec_dev, 0x1e,0xff, 0x4f);
+	lt8912_i2c_reg_write(cec_dev, 0x51,0xff, 0x00);
+
+	lt8912_i2c_reg_write(main_dev, 0xb2,0xff, 0x00); // 0x01:HDMI; 0x00: DVI
+
+	/* AudioIIsEn */
+	lt8912_i2c_reg_write(third_dev, 0x06,0xff, 0x08); // 0x09
+	lt8912_i2c_reg_write(third_dev, 0x07,0xff, 0x00); // enable Audio: 0xF0;  Audio Mute: 0x00
+	lt8912_i2c_reg_write(third_dev, 0x0f,0xff, 0x0b + Sample_Freq[_44d1KHz]);
+	lt8912_i2c_reg_write(third_dev, 0x37,0xff, (u8)(IIS_N[_44d1KHz]/0x10000));
+	lt8912_i2c_reg_write(third_dev, 0x36,0xff, (u8)((IIS_N[_44d1KHz]&0x00FFFF)/0x100));
+	lt8912_i2c_reg_write(third_dev, 0x35,0xff, (u8)(IIS_N[_44d1KHz]&0x0000FF));
+	lt8912_i2c_reg_write(third_dev, 0x34,0xff, 0xD2);
+
+	lt8912_i2c_reg_write(third_dev, 0x3c,0xff, 0x41);
+
+	/* AVI Packet Config*/
+	lt8912_i2c_reg_write(third_dev, 0x3e,0xff, 0x0A);
+	lt8912_i2c_reg_write(third_dev, 0x43,0xff, 0x46 - HDMI_VIC);
+	lt8912_i2c_reg_write(third_dev, 0x44,0xff, 0x10);
+	lt8912_i2c_reg_write(third_dev, 0x45,0xff, 0x19);
+	lt8912_i2c_reg_write(third_dev, 0x47,0xff, 0x00 + HDMI_VIC);
+
+
+	/* MIPIRxLogicRes */
+	lt8912_i2c_reg_write(main_dev, 0x03,0xff, 0x7f);
+	mdelay(10);
+	lt8912_i2c_reg_write(main_dev, 0x03,0xff, 0xff);
+
+	lt8912_i2c_reg_write(cec_dev, 0x51,0xff, 0x80);
+	mdelay(10);
+	lt8912_i2c_reg_write(cec_dev, 0x51,0xff, 0x00);
+
+
+#ifdef _LVDS_Output_
+//	Coll PLL?????????
+
+	temp = (u8)(( lvds_clock*7 ) /25);
+
+	lt8912_i2c_reg_write(main_dev, 0x50,0xff, 0x24);
+	lt8912_i2c_reg_write(main_dev, 0x51,0xff, 0x05);
+	lt8912_i2c_reg_write(main_dev, 0x52,0xff, 0x14);
+
+	lt8912_i2c_reg_write(main_dev, 0x69, 0xff, temp );
+	lt8912_i2c_reg_write(main_dev, 0x69, 0xff, 0x80 + temp );
+	printf("LT8912 0x69 [%x] [%x]\n",temp,0x80 + temp);
+	temp_float = lvds_clock*7/25;
+	temp_float = (temp_float - (int)(temp_float))*16384;
+
+
+//***********************************************************//
+// ???????????????????Big-endian??
+//	lt8912_i2c_reg_write(main_dev, 0x6c, 0xff, 0x80 + Core_PLL_Ratio.Temp8[2] );
+//	lt8912_i2c_reg_write(main_dev, 0x6b, 0xff, Core_PLL_Ratio.Temp8[3] );
+
+
+// ???????????????????Little-endian??
+	temp = (u8)(temp_float/256+128);
+	lt8912_i2c_reg_write(main_dev, 0x6c, 0xff, temp);
+	printf("LT8912 0x6c [%x] \n",temp);
+	temp = (u8)(temp_float-(int)(temp_float/256)*256);
+	lt8912_i2c_reg_write(main_dev, 0x6b, 0xff, temp);
+	printf("LT8912 6b[%x]\n",temp);
+//***********************************************************//
+
+	lt8912_i2c_reg_write( main_dev, 0x04, 0xff, 0xfb ); //core pll reset
+	lt8912_i2c_reg_write( main_dev, 0x04, 0xff, 0xff );
+//------------------------------------------//
+
+
+	//  LVDS Output?????????
+	//  void LVDS_Scale_Ratio(void)
+
+
+	lt8912_i2c_reg_write( main_dev, 0x80, 0xff, 0x00 );
+	lt8912_i2c_reg_write( main_dev, 0x81, 0xff, 0xff );
+	lt8912_i2c_reg_write( main_dev, 0x82, 0xff, 0x03 );
+
+
+	lt8912_i2c_reg_write( main_dev, 0x83, 0xff, (u8)( MIPI_Timing[H_act] % 256 ) );
+	lt8912_i2c_reg_write( main_dev, 0x84, 0xff, (u8)( MIPI_Timing[H_act] / 256 ) );
+	printf("LT8912 0x83 [%x] 0x84[%x]\n",(u8)( MIPI_Timing[H_act] % 256 ),(u8)( MIPI_Timing[H_act] / 256 ));
+
+	lt8912_i2c_reg_write( main_dev, 0x85, 0xff, 0x80);
+	lt8912_i2c_reg_write( main_dev, 0x86, 0xff, 0x10);
+
+
+
+
+
+	lt8912_i2c_reg_write( main_dev, 0x87, 0xff, (u8)( LVDS_Panel_Timing[H_tol] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x88, 0xff, (u8)( LVDS_Panel_Timing[H_tol] / 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x89, 0xff, (u8)( LVDS_Panel_Timing[H_sync] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x8a, 0xff, (u8)( LVDS_Panel_Timing[H_bp] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x8b, 0xff, (u8)( ( LVDS_Panel_Timing[H_bp] / 256 ) * 0x80 + ( LVDS_Panel_Timing[V_sync] % 256 ) ));
+	lt8912_i2c_reg_write( main_dev, 0x8c, 0xff, (u8)( LVDS_Panel_Timing[H_act] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x8d, 0xff, (u8)( LVDS_Panel_Timing[V_act] % 256 ));
+	lt8912_i2c_reg_write( main_dev, 0x8e, 0xff, (u8)( ( LVDS_Panel_Timing[V_act] / 256 ) * 0x10 + ( LVDS_Panel_Timing[H_act] / 256 ) ));
+	printf("LT8912 0x87 [%x] 0x88[%x]\n",(u8)( LVDS_Panel_Timing[H_tol] % 256 ), (u8)( LVDS_Panel_Timing[H_tol] / 256 ));
+	printf("LT8912 0x89 [%x] 0x8a[%x]\n",(u8)( LVDS_Panel_Timing[H_sync] % 256 ),(u8)( LVDS_Panel_Timing[H_bp] % 256 ));
+	printf("LT8912 0x8b [%x] 0x8c[%x]\n",(u8)( ( LVDS_Panel_Timing[H_bp] / 256 ) * 0x80 + ( LVDS_Panel_Timing[V_sync] % 256 ) ), (u8)( LVDS_Panel_Timing[H_act] % 256 ));
+	printf("LT8912 0x8d [%x] 0x8e[%x]\n", (u8)( LVDS_Panel_Timing[V_act] % 256 ),(u8)( ( LVDS_Panel_Timing[V_act] / 256 ) * 0x10 + ( LVDS_Panel_Timing[H_act] / 256 ) ));
+
+	temp_float				   = ( ( (float)( MIPI_Timing[H_act] - 1 ) ) / (float)( LVDS_Panel_Timing[H_act] - 1 ) ) * 4096;
+	Core_PLL_Ratio.Temp32  = (u32)(temp_float+0.5);
+	
+	//***********************************************************//
+	// ???????????????????Big-endian??
+
+	//lt8912_i2c_reg_write( main_dev, 0x8f, 0xff, Core_PLL_Ratio.Temp8[3]);
+	//lt8912_i2c_reg_write( main_dev, 0x90, 0xff, Core_PLL_Ratio.Temp8[2]);
+
+	// ???????????????????Little-endian??
+	temp = (u8)(Core_PLL_Ratio.Temp32&0xff);
+	lt8912_i2c_reg_write( main_dev, 0x8f, 0xff, temp);
+	printf("LT8912 0x8f [%x] \n",temp);
+	temp = (u8)((Core_PLL_Ratio.Temp32>>8) & 0xff);
+	lt8912_i2c_reg_write( main_dev, 0x90, 0xff, temp);
+	printf("LT8912 0x90 [%x] \n",temp);
+	//***********************************************************//
+
+	temp_float				   = ( ( (float)( MIPI_Timing[V_act] - 1 ) ) / (float)( LVDS_Panel_Timing[V_act] - 1 ) ) * 4096;
+	Core_PLL_Ratio.Temp32  = (u32)(temp_float+0.5);
+	//***********************************************************//
+	// ???????????????????Big-endian??
+
+	//lt8912_i2c_reg_write( main_dev, 0x91, 0xff, Core_PLL_Ratio.Temp8[3]);
+	//lt8912_i2c_reg_write( main_dev, 0x92, 0xff, Core_PLL_Ratio.Temp8[2]);
+
+	// ???????????????????Little-endian??
+	temp = (u8)(Core_PLL_Ratio.Temp32&0xff);
+	lt8912_i2c_reg_write( main_dev, 0x91, 0xff, temp);
+	printf("LT8912 0x91 [%x] \n",temp);
+	temp = (u8)((Core_PLL_Ratio.Temp32>>8) & 0xff);
+	lt8912_i2c_reg_write( main_dev, 0x92, 0xff, temp);
+	printf("LT8912 0x92 [%x] \n",temp);
+	//***********************************************************//
+
+	lt8912_i2c_reg_write( main_dev, 0x7f, 0xff, 0x9c);
+
+
+	lt8912_i2c_reg_write( main_dev, 0xa8, 0xff, _VesaJeidaMode + _DE_Sync_mode + _ColorDeepth);
+
+	mdelay( 300 );
+
+	//  void LvdsPowerUp(void)
+
+	lt8912_i2c_reg_write(main_dev, 0x44, 0xff, 0x30);
+#endif
+
+
+
+
 }
 
 #define DISPLAY_MIX_SFT_RSTN_CSR		0x00
@@ -522,22 +894,22 @@ void disp_mix_lcdif_clks_enable(ulong gpr_base, bool enable)
 		clrbits_le32(gpr_base + DISPLAY_MIX_CLK_EN_CSR, LCDIF_PIXEL_CLK_SFT_EN | LCDIF_APB_CLK_SFT_EN);
 }
 
-struct mipi_dsi_client_dev adv7535_dev = {
+struct mipi_dsi_client_dev lt8912_dev = {
 	.channel	= 0,
 	.lanes = 4,
 	.format  = MIPI_DSI_FMT_RGB888,
-	.mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE |
+	.mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE | 
 			  MIPI_DSI_MODE_EOT_PACKET | MIPI_DSI_MODE_VIDEO_HSE,
-	.name = "ADV7535",
+	.name = "LT8912B",
 };
 
-struct mipi_dsi_client_dev rm67191_dev = {
-	.channel	= 0,
-	.lanes = 4,
-	.format  = MIPI_DSI_FMT_RGB888,
-	.mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE |
-			  MIPI_DSI_MODE_EOT_PACKET | MIPI_DSI_MODE_VIDEO_HSE,
-};
+//struct mipi_dsi_client_dev rm67191_dev = {
+//	.channel	= 0,
+//	.lanes = 4,
+//	.format  = MIPI_DSI_FMT_RGB888,
+//	.mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE |
+//			  MIPI_DSI_MODE_EOT_PACKET | MIPI_DSI_MODE_VIDEO_HSE,
+//};
 
 #define FSL_SIP_GPC			0xC2000000
 #define FSL_SIP_CONFIG_GPC_PM_DOMAIN	0x3
@@ -546,31 +918,10 @@ struct mipi_dsi_client_dev rm67191_dev = {
 
 void do_enable_mipi2hdmi(struct display_info_t const *dev)
 {
-	gpio_request(IMX_GPIO_NR(1, 8), "DSI EN");
-	gpio_direction_output(IMX_GPIO_NR(1, 8), 1);
 
-	/* ADV7353 initialization */
-	adv7535_init();
 
-	/* enable the dispmix & mipi phy power domain */
-	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, DISPMIX, true, 0);
-	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, MIPI, true, 0);
-
-	/* Put lcdif out of reset */
-	disp_mix_bus_rstn_reset(imx8mm_mipi_dsim_plat_data.gpr_base, false);
-	disp_mix_lcdif_clks_enable(imx8mm_mipi_dsim_plat_data.gpr_base, true);
-
-	/* Setup mipi dsim */
-	sec_mipi_dsim_setup(&imx8mm_mipi_dsim_plat_data);
-	imx_mipi_dsi_bridge_attach(&adv7535_dev); /* attach adv7535 device */
-}
-
-void do_enable_mipi_led(struct display_info_t const *dev)
-{
-	gpio_request(IMX_GPIO_NR(1, 8), "DSI EN");
-	gpio_direction_output(IMX_GPIO_NR(1, 8), 0);
-	mdelay(100);
-	gpio_direction_output(IMX_GPIO_NR(1, 8), 1);
+	/* LT8912 initialization */
+	lt8912_init();
 
 	/* enable the dispmix & mipi phy power domain */
 	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, DISPMIX, true, 0);
@@ -582,18 +933,38 @@ void do_enable_mipi_led(struct display_info_t const *dev)
 
 	/* Setup mipi dsim */
 	sec_mipi_dsim_setup(&imx8mm_mipi_dsim_plat_data);
-
-	rm67191_init();
-	rm67191_dev.name = displays[1].mode.name;
-	imx_mipi_dsi_bridge_attach(&rm67191_dev); /* attach rm67191 device */
+	imx_mipi_dsi_bridge_attach(&lt8912_dev); /* attach adv7535 device */
 }
-
-void board_quiesce_devices(void)
-{
-	gpio_request(IMX_GPIO_NR(1, 8), "DSI EN");
-	gpio_direction_output(IMX_GPIO_NR(1, 8), 0);
-}
-
+//
+//void do_enable_mipi_led(struct display_info_t const *dev)
+//{
+//	gpio_request(IMX_GPIO_NR(1, 8), "DSI EN");
+//	gpio_direction_output(IMX_GPIO_NR(1, 8), 0);
+//	mdelay(100);
+//	gpio_direction_output(IMX_GPIO_NR(1, 8), 1);
+//
+//	/* enable the dispmix & mipi phy power domain */
+//	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, DISPMIX, true, 0);
+//	call_imx_sip(FSL_SIP_GPC, FSL_SIP_CONFIG_GPC_PM_DOMAIN, MIPI, true, 0);
+//
+//	/* Put lcdif out of reset */
+//	disp_mix_bus_rstn_reset(imx8mm_mipi_dsim_plat_data.gpr_base, false);
+//	disp_mix_lcdif_clks_enable(imx8mm_mipi_dsim_plat_data.gpr_base, true);
+//
+//	/* Setup mipi dsim */
+//	sec_mipi_dsim_setup(&imx8mm_mipi_dsim_plat_data);
+//
+//	rm67191_init();
+//	rm67191_dev.name = displays[1].mode.name;
+//	imx_mipi_dsi_bridge_attach(&rm67191_dev); /* attach rm67191 device */
+//}
+//
+//void board_quiesce_devices(void)
+//{
+//	gpio_request(IMX_GPIO_NR(1, 8), "DSI EN");
+//	gpio_direction_output(IMX_GPIO_NR(1, 8), 0);
+//}
+//
 struct display_info_t const displays[] = {{
 	.bus = LCDIF_BASE_ADDR,
 	.addr = 0,
@@ -615,28 +986,8 @@ struct display_info_t const displays[] = {{
 		.sync			= FB_SYNC_EXT,
 		.vmode			= FB_VMODE_NONINTERLACED
 
-} }, {
-	.bus = LCDIF_BASE_ADDR,
-	.addr = 0,
-	.pixfmt = 24,
-	.detect = NULL,
-	.enable	= do_enable_mipi_led,
-	.mode	= {
-		.name			= "RM67191_OLED",
-		.refresh		= 60,
-		.xres			= 1080,
-		.yres			= 1920,
-		.pixclock		= 7575, /* 132000000 */
-		.left_margin	= 34,
-		.right_margin	= 20,
-		.upper_margin	= 4,
-		.lower_margin	= 10,
-		.hsync_len		= 2,
-		.vsync_len		= 2,
-		.sync			= FB_SYNC_EXT,
-		.vmode			= FB_VMODE_NONINTERLACED
-
-} } };
+} }
+};
 size_t display_count = ARRAY_SIZE(displays);
 #endif
 
