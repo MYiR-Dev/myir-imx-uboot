@@ -43,6 +43,14 @@ static iomux_v3_cfg_t const wdog_pads[] = {
 	IMX8MM_PAD_GPIO1_IO02_WDOG1_WDOG_B  | MUX_PAD_CTRL(WDOG_PAD_CTRL),
 };
 
+#define PMIC_PWREN_GPIO IMX_GPIO_NR(4, 27)
+#define PMIC_PWRWODOG_GPIO IMX_GPIO_NR(4, 25)
+
+static iomux_v3_cfg_t const pmicgpio_pads[] = {
+	IMX8MM_PAD_SAI2_MCLK_GPIO4_IO27 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	IMX8MM_PAD_SAI2_TXC_GPIO4_IO25 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
 #ifdef CONFIG_FSL_FSPI
 int board_qspi_init(void)
 {
@@ -334,8 +342,65 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
 
 #endif
 
+static int pmic_i2c_reg_write(struct udevice *dev, uint addr, uint data)
+{
+	uint8_t valb;
+	int err;
+	err = dm_i2c_write(dev, addr, &data, 1);
+	return err;
+}
+
+static void pmic_init_fpga(void)
+{
+	struct udevice *bus,*main_dev;
+	int i2c_bus = 1;
+	int ret=0;
+	printf("init pmic for fpga\n");
+	ret = uclass_get_device_by_seq(UCLASS_I2C, i2c_bus, &bus);
+	if (ret) {
+		printf("%s: No bus %d\n", __func__, i2c_bus);
+		return;
+	}
+	ret = dm_i2c_probe(bus, 0x4b, 0, &main_dev);
+	if (ret) {
+		printf("%s: Can't find device id=0x%x, on bus %d\n",__func__, 0x4b, i2c_bus);
+		return;
+	}
+
+	pmic_i2c_reg_write(main_dev, BD71837_PWRONCONFIG1, 0x0);
+	pmic_i2c_reg_write(main_dev, BD71837_REGLOCK, 0x01);
+	pmic_i2c_reg_write(main_dev, BD71837_BUCK1_VOLT_RUN, 0x1e);
+	pmic_i2c_reg_write(main_dev, BD71837_BUCK2_VOLT_RUN, 0x05);
+	pmic_i2c_reg_write(main_dev, BD71837_BUCK5_VOLT, 0x03);
+	pmic_i2c_reg_write(main_dev, BD71837_BUCK6_VOLT, 0x03);
+	pmic_i2c_reg_write(main_dev, BD71837_BUCK7_VOLT, 0x03);
+	pmic_i2c_reg_write(main_dev, BD71837_BUCK8_VOLT, 0x37);
+	pmic_i2c_reg_write(main_dev, BD71837_LDO1_VOLT, 0x06);
+	pmic_i2c_reg_write(main_dev, BD71837_LDO2_VOLT, 0x01);
+
+	pmic_i2c_reg_write(main_dev, BD71837_LDO3_VOLT, 0x0);
+	pmic_i2c_reg_write(main_dev, BD71837_LDO4_VOLT, 0x01);
+	//pmic_i2c_reg_write(main_dev, BD71837_LDO5_VOLT, 0x0);
+	pmic_i2c_reg_write(main_dev, BD71837_LDO6_VOLT, 0x03);
+	pmic_i2c_reg_write(main_dev, 0x4b, 0x21);
+	pmic_i2c_reg_write(main_dev, BD71837_REGLOCK, 0x11);
+
+	mdelay(20);
+	imx_iomux_v3_setup_multiple_pads(
+		pmicgpio_pads, ARRAY_SIZE(pmicgpio_pads));
+	gpio_request(PMIC_PWREN_GPIO, "PMIC_EN");
+	gpio_request(PMIC_PWRWODOG_GPIO, "PMIC_WDOG");
+	gpio_direction_output(PMIC_PWREN_GPIO, 0);
+	gpio_direction_output(PMIC_PWRWODOG_GPIO, 0);
+	udelay(500);
+	gpio_direction_output(PMIC_PWREN_GPIO, 1);
+	gpio_direction_output(PMIC_PWRWODOG_GPIO, 1);
+	return;
+}
+
 int board_init(void)
 {
+	pmic_init_fpga();
 #ifdef CONFIG_USB_TCPC
 	setup_typec();
 #endif
