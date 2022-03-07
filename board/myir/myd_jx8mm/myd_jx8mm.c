@@ -382,19 +382,17 @@ static void pmic_init_fpga(void)
 	pmic_i2c_reg_write(main_dev, BD71837_LDO4_VOLT, 0x01);
 	//pmic_i2c_reg_write(main_dev, BD71837_LDO5_VOLT, 0x0);
 	pmic_i2c_reg_write(main_dev, BD71837_LDO6_VOLT, 0x03);
-	pmic_i2c_reg_write(main_dev, 0x4b, 0x21);
+	pmic_i2c_reg_write(main_dev, 0x21,0);
 	pmic_i2c_reg_write(main_dev, BD71837_REGLOCK, 0x11);
-
+#if 1 
 	mdelay(20);
 	imx_iomux_v3_setup_multiple_pads(
 		pmicgpio_pads, ARRAY_SIZE(pmicgpio_pads));
 	gpio_request(PMIC_PWREN_GPIO, "PMIC_EN");
 	gpio_request(PMIC_PWRWODOG_GPIO, "PMIC_WDOG");
-	gpio_direction_output(PMIC_PWREN_GPIO, 0);
-	gpio_direction_output(PMIC_PWRWODOG_GPIO, 0);
-	udelay(500);
 	gpio_direction_output(PMIC_PWREN_GPIO, 1);
 	gpio_direction_output(PMIC_PWRWODOG_GPIO, 1);
+#endif
 	return;
 }
 
