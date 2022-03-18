@@ -853,7 +853,7 @@ static void lt8912_init(void)
 
 	lt8912_i2c_reg_write( main_dev, 0x83, 0xff, (u8)( MIPI_Timing[H_act] % 256 ) );
 	lt8912_i2c_reg_write( main_dev, 0x84, 0xff, (u8)( MIPI_Timing[H_act] / 256 ) );
-	printf("LT8912 0x83 [%x] 0x84[%x]\n",(u8)( MIPI_Timing[H_act] % 256 ),(u8)( MIPI_Timing[H_act] / 256 ));
+//	printf("LT8912 0x83 [%x] 0x84[%x]\n",(u8)( MIPI_Timing[H_act] % 256 ),(u8)( MIPI_Timing[H_act] / 256 ));
 
 	lt8912_i2c_reg_write( main_dev, 0x85, 0xff, 0x80);
 	lt8912_i2c_reg_write( main_dev, 0x86, 0xff, 0x10);
@@ -870,10 +870,10 @@ static void lt8912_init(void)
 	lt8912_i2c_reg_write( main_dev, 0x8c, 0xff, (u8)( LVDS_Panel_Timing[H_act] % 256 ));
 	lt8912_i2c_reg_write( main_dev, 0x8d, 0xff, (u8)( LVDS_Panel_Timing[V_act] % 256 ));
 	lt8912_i2c_reg_write( main_dev, 0x8e, 0xff, (u8)( ( LVDS_Panel_Timing[V_act] / 256 ) * 0x10 + ( LVDS_Panel_Timing[H_act] / 256 ) ));
-	printf("LT8912 0x87 [%x] 0x88[%x]\n",(u8)( LVDS_Panel_Timing[H_tol] % 256 ), (u8)( LVDS_Panel_Timing[H_tol] / 256 ));
-	printf("LT8912 0x89 [%x] 0x8a[%x]\n",(u8)( LVDS_Panel_Timing[H_sync] % 256 ),(u8)( LVDS_Panel_Timing[H_bp] % 256 ));
-	printf("LT8912 0x8b [%x] 0x8c[%x]\n",(u8)( ( LVDS_Panel_Timing[H_bp] / 256 ) * 0x80 + ( LVDS_Panel_Timing[V_sync] % 256 ) ), (u8)( LVDS_Panel_Timing[H_act] % 256 ));
-	printf("LT8912 0x8d [%x] 0x8e[%x]\n", (u8)( LVDS_Panel_Timing[V_act] % 256 ),(u8)( ( LVDS_Panel_Timing[V_act] / 256 ) * 0x10 + ( LVDS_Panel_Timing[H_act] / 256 ) ));
+//	printf("LT8912 0x87 [%x] 0x88[%x]\n",(u8)( LVDS_Panel_Timing[H_tol] % 256 ), (u8)( LVDS_Panel_Timing[H_tol] / 256 ));
+//	printf("LT8912 0x89 [%x] 0x8a[%x]\n",(u8)( LVDS_Panel_Timing[H_sync] % 256 ),(u8)( LVDS_Panel_Timing[H_bp] % 256 ));
+//	printf("LT8912 0x8b [%x] 0x8c[%x]\n",(u8)( ( LVDS_Panel_Timing[H_bp] / 256 ) * 0x80 + ( LVDS_Panel_Timing[V_sync] % 256 ) ), (u8)( LVDS_Panel_Timing[H_act] % 256 ));
+//	printf("LT8912 0x8d [%x] 0x8e[%x]\n", (u8)( LVDS_Panel_Timing[V_act] % 256 ),(u8)( ( LVDS_Panel_Timing[V_act] / 256 ) * 0x10 + ( LVDS_Panel_Timing[H_act] / 256 ) ));
 
 	temp_float				   = ( ( (float)( MIPI_Timing[H_act] - 1 ) ) / (float)( LVDS_Panel_Timing[H_act] - 1 ) ) * 4096;
 	Core_PLL_Ratio.Temp32  = (u32)(temp_float+0.5);
@@ -887,10 +887,10 @@ static void lt8912_init(void)
 	// ???????????????????Little-endian??
 	temp = (u8)(Core_PLL_Ratio.Temp32&0xff);
 	lt8912_i2c_reg_write( main_dev, 0x8f, 0xff, temp);
-	printf("LT8912 0x8f [%x] \n",temp);
+//	printf("LT8912 0x8f [%x] \n",temp);
 	temp = (u8)((Core_PLL_Ratio.Temp32>>8) & 0xff);
 	lt8912_i2c_reg_write( main_dev, 0x90, 0xff, temp);
-	printf("LT8912 0x90 [%x] \n",temp);
+//	printf("LT8912 0x90 [%x] \n",temp);
 	//***********************************************************//
 
 	temp_float				   = ( ( (float)( MIPI_Timing[V_act] - 1 ) ) / (float)( LVDS_Panel_Timing[V_act] - 1 ) ) * 4096;
@@ -904,10 +904,10 @@ static void lt8912_init(void)
 	// ???????????????????Little-endian??
 	temp = (u8)(Core_PLL_Ratio.Temp32&0xff);
 	lt8912_i2c_reg_write( main_dev, 0x91, 0xff, temp);
-	printf("LT8912 0x91 [%x] \n",temp);
+//	printf("LT8912 0x91 [%x] \n",temp);
 	temp = (u8)((Core_PLL_Ratio.Temp32>>8) & 0xff);
 	lt8912_i2c_reg_write( main_dev, 0x92, 0xff, temp);
-	printf("LT8912 0x92 [%x] \n",temp);
+//	printf("LT8912 0x92 [%x] \n",temp);
 	//***********************************************************//
 
 	lt8912_i2c_reg_write( main_dev, 0x7f, 0xff, 0x9c);
