@@ -369,6 +369,7 @@
 
 #define CONFIG_PHYLIB
 #define CONFIG_PHY_SMSC
+#define CONFIG_PHY_MOTORCOMM
 #endif
 
 #define CONFIG_IMX_THERMAL
