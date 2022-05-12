@@ -31,6 +31,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+
 #define UART_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_FSEL1)
 #define WDOG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
 
@@ -45,6 +46,11 @@ static iomux_v3_cfg_t const wdog_pads[] = {
 
 #define PMIC_PWREN_GPIO IMX_GPIO_NR(4, 27)
 #define PMIC_PWRWODOG_GPIO IMX_GPIO_NR(4, 25)
+#define FPFA_POWER_GPIO IMX_GPIO_NR(3, 23)
+
+static iomux_v3_cfg_t const fpgapower_pads[] = {
+	IMX8MM_PAD_SAI5_RXD2_GPIO3_IO23 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
 
 static iomux_v3_cfg_t const pmicgpio_pads[] = {
 	IMX8MM_PAD_SAI2_MCLK_GPIO4_IO27 | MUX_PAD_CTRL(NO_PAD_CTRL),
@@ -393,6 +399,14 @@ static void pmic_init_fpga(void)
 	gpio_direction_output(PMIC_PWREN_GPIO, 1);
 	gpio_direction_output(PMIC_PWRWODOG_GPIO, 1);
 #endif
+
+	/* power on fpga */
+	mdelay(20);
+	imx_iomux_v3_setup_multiple_pads(
+		fpgapower_pads, ARRAY_SIZE(fpgapower_pads));
+	gpio_request(FPFA_POWER_GPIO, "FPGA_POWER_EN");
+	gpio_direction_output(FPFA_POWER_GPIO, 1);
+
 	return;
 }
 
