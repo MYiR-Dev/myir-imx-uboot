@@ -206,7 +206,10 @@
 			"fi; " \
 		"else " \
 			"booti; " \
-		"fi;\0"
+		"fi;\0" \
+       "bootfix=gpio clear GPIO2_12; "\
+               "sleep 1;gpio set GPIO2_12;"\
+               "mmc dev ${mmcdev} ;run loadimage;run mmcboot;\0"
 
 #define CONFIG_BOOTCOMMAND \
 	   "mmc dev ${mmcdev}; if mmc rescan; then " \
@@ -215,7 +218,12 @@
 		   "else " \
 			   "if run loadimage; then " \
 				   "run mmcboot; " \
-			   "else run netboot; " \
+			   "else "\
+				   "if test ${mmcdev} = 1; then "\
+				       "run bootfix; " \
+			       "else "\
+				       "run netboot; " \
+				   "fi;" \
 			   "fi; " \
 		   "fi; " \
 	   "else booti ${loadaddr} - ${fdt_addr}; fi"
