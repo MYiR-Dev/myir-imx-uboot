@@ -1,0 +1,14 @@
+if TARGET_MYS_6ULL_14X14
+
+config SYS_BOARD
+	default "mys-6ull-14x14"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "mys-6ull-14x14"
+
+config SYS_TEXT_BASE
+	default 0x87800000
+endif

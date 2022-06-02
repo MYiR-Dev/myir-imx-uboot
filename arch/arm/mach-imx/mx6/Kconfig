@@ -624,6 +624,14 @@ config TARGET_MX6ULL_14X14_EVK
 	select DM_THERMAL
 	select MX6ULL
 	imply CMD_DM
+	
+config TARGET_MYS_6ULL_14X14
+	bool "Support mys_6ull_14x14"
+	select BOARD_LATE_INIT
+	select DM
+	select DM_THERMAL
+	select MX6ULL
+	imply CMD_DM
 
 config TARGET_NITROGEN6X
 	bool "nitrogen6x"
@@ -900,5 +908,6 @@ source "board/udoo/neo/Kconfig"
 source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
 source "board/BuR/brppt2/Kconfig"
+source "board/myir/mys-6ull-14x14/Kconfig"
 
 endif
