@@ -56,7 +56,10 @@
 #define CONFIG_SYS_MMC_IMG_LOAD_PART	1
 
 #ifdef CONFIG_NAND_BOOT
+/*
 #define MFG_NAND_PARTITION "mtdparts=gpmi-nand:64m(nandboot),16m(nandkernel),16m(nanddtb),16m(nandtee),-(nandrootfs)"
+*/
+#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),-(nandrootfs) "
 #else
 #define MFG_NAND_PARTITION ""
 #endif
@@ -89,8 +92,8 @@
 		BOOTARGS_CMA_SIZE \
 		MFG_NAND_PARTITION \
 		"\0" \
-	"bootcmd=nand read ${loadaddr} 0x4000000 0xc00000;"\
-		"nand read ${fdt_addr} 0x5000000 0x100000;"\
+	"bootcmd=nand read ${loadaddr} 0x600000 0xA00000;"\
+		"nand read ${fdt_addr} 0x1000000 0x100000;"\
 		"if test ${tee} = yes; then " \
 			"nand read ${tee_addr} 0x6000000 0x400000;"\
 			"bootm ${tee_addr} - ${fdt_addr};" \
