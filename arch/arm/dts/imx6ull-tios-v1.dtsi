@@ -181,6 +181,19 @@
 	status = "okay";
 };
 
+/* SPI */
+&ecspi2 {	
+	pinctrl-names = "default"
+	pinctrl-0 = <&pinctrl_spi2>;
+	
+	spidev@0x02 {
+		compatible = "spidev";
+		spi-max-frequency = <1200000>;
+		reg = <0>;
+	};
+	 status = "okay";
+};
+
 /* Other */
 &sdma {
 	status = "okay";
@@ -282,13 +295,14 @@
 			MX6UL_PAD_CSI_DATA05__ECSPI1_SS0	0x000a0
 		>;
 	};
-	pinctrl_spi2: spi2grp {
+	pinctrl_spi2: sp2grp {
 		fsl,pins = <
-			MX6UL_PAD_LCD_DATA20__ECSPI1_SCLK	0x000a0
-			MX6UL_PAD_LCD_DATA22__ECSPI1_MOSI	0x000a0
-			MX6UL_PAD_LCD_DATA23__ECSPI1_MISO	0x100a0			
+			MX6UL_PAD_UART4_TX_DATA__ECSPI2_SCLK 0x000a0
+			MX6UL_PAD_UART4_RX_DATA__ECSPI2_SS0	 0x000a0
+			MX6UL_PAD_UART5_TX_DATA__ECSPI2_MOSI 0x000a0	
+			MX6UL_PAD_UART5_RX_DATA__ECSPI2_MISO 0x100a0
 		>;
-	};
+	};		
 	pinctrl_spi4: spi4grp {
 		fsl,pins = <
 			MX6UL_PAD_ENET2_TX_DATA1__ECSPI4_SCLK	0x000a0
