@@ -327,7 +327,7 @@
 	
 	pinctrl_fec1_reset: fec1_resetgrp {
 		fsl,pins = <
-			MX6UL_PAD_SNVS_TAMPER6__GPIO5_IO06 0x79
+			MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09 0x79
 		>;
 	};
 
@@ -417,7 +417,7 @@
 			MX6UL_PAD_LCD_HSYNC__LCDIF_HSYNC    0x79
 			MX6UL_PAD_LCD_VSYNC__LCDIF_VSYNC    0x79
 			/* used for lcd reset */
-			MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09  0x79
+			MX6UL_PAD_SNVS_TAMPER6__GPIO5_IO06  0x79
 		>;
 	};
 

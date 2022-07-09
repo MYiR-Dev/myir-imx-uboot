@@ -239,6 +239,12 @@ static int setup_fec(void)
 
 	enable_enet_clk(1);
 
+	/* Reset the fec1 */
+	gpio_request(IMX_GPIO_NR(5, 9), "fec1 reset");
+	gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
+	udelay(500);
+	gpio_direction_output(IMX_GPIO_NR(5, 9) , 1);
+
 	return 0;
 }
 
@@ -266,10 +272,10 @@ static int setup_lcd(void)
 	imx_iomux_v3_setup_multiple_pads(lcd_pads, ARRAY_SIZE(lcd_pads));
 
 	/* Reset the LCD */
-	gpio_request(IMX_GPIO_NR(5, 9), "lcd reset");
-	gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
+	gpio_request(IMX_GPIO_NR(5, 6), "lcd reset");
+	gpio_direction_output(IMX_GPIO_NR(5, 6) , 0);
 	udelay(500);
-	gpio_direction_output(IMX_GPIO_NR(5, 9) , 1);
+	gpio_direction_output(IMX_GPIO_NR(5, 6) , 1);
 
 	/* Set Brightness to high */
 	gpio_request(IMX_GPIO_NR(1, 8), "backlight");
