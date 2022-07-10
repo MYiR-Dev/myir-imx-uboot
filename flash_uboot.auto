@@ -1,0 +1,13 @@
+uuu_version 1.2.39
+
+# This command will be run when i.MX6/7 i.MX8MM, i.MX8MQ
+SDP: boot -f ./u-boot-dtb.imx
+
+FB: ucmd setenv fastboot_dev mmc
+FB: ucmd setenv mmcdev ${emmc_dev}
+FB: ucmd mmc dev ${emmc_dev}
+#FB: flash -raw2sparse all ./file/rootfs/myir-image-core-myd-y6ull14x14.wic
+FB: flash bootloader ./u-boot-dtb.imx
+FB: ucmd if env exists emmc_ack; then ; else setenv emmc_ack 0; fi;
+FB: ucmd mmc partconf ${emmc_dev} ${emmc_ack} 1 0
+FB: done

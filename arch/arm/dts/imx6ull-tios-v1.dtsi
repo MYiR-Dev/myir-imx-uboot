@@ -29,7 +29,7 @@
 /* I2C */
 &i2c1 {
 	clock-frequency = <100000>;
-	pinctrl-names = "default", "gpio";
+	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 };
@@ -82,23 +82,7 @@
 };
 
 &fec2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_enet2>;
-	phy-mode = "rmii";
-	phy-handle = <&ethphy1>;
 	status = "disabled";
-	
-	mdio {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		ethphy1: ethernet-phy@1 {
-			reg = <1>;
-			micrel,led-mode = <1>;
-			clocks = <&clks IMX6UL_CLK_ENET2_REF>;
-			clock-names = "rmii-ref";
-		};
-	};
 };
 /* UART */
 &uart1 {
@@ -182,16 +166,29 @@
 };
 
 /* SPI */
-&ecspi2 {	
-	pinctrl-names = "default"
-	pinctrl-0 = <&pinctrl_spi2>;
-	
-	spidev@0x02 {
+&ecspi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi1>;
+	cs-gpios = <&gpio4 26 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	spidev0: spi@0 {
 		compatible = "spidev";
-		spi-max-frequency = <1200000>;
 		reg = <0>;
+		spi-max-frequency = <5000000>;
 	};
-	 status = "okay";
+};
+&ecspi2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi2>;
+	cs-gpios = <&gpio1 29 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	spidev1: spi@0 {
+		compatible = "spidev";
+		reg = <0>;
+		spi-max-frequency = <5000000>;
+	};
 };
 
 /* Other */
@@ -210,19 +207,20 @@
 /* IO MUXING */
 &iomuxc {
 	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_gpios>;
 	
 	/* GPIO */
-	pinctrl_gpio1: gpio1-grp {
+	pinctrl_gpios: gpios-grp {
 		fsl,pins = <
-			MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00 	0x14
-			MX6UL_PAD_SNVS_TAMPER1__GPIO5_IO01 	0x14
-			MX6UL_PAD_SNVS_TAMPER2__GPIO5_IO02 	0x14
-			MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03 	0x14
-			MX6UL_PAD_SNVS_TAMPER4__GPIO5_IO04 	0x14
-			MX6UL_PAD_SNVS_TAMPER5__GPIO5_IO05 	0x14
-			MX6UL_PAD_SNVS_TAMPER6__GPIO5_IO06 	0x79
-			MX6UL_PAD_SNVS_TAMPER7__GPIO5_IO07  0x14
-			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08  0x14
+			MX6UL_PAD_SNVS_TAMPER0__GPIO5_IO00 	0x0b0b0
+			MX6UL_PAD_SNVS_TAMPER1__GPIO5_IO01 	0x0b0b0
+			MX6UL_PAD_SNVS_TAMPER2__GPIO5_IO02 	0x0b0b0
+			MX6UL_PAD_SNVS_TAMPER3__GPIO5_IO03 	0x0b0b0
+			MX6UL_PAD_SNVS_TAMPER4__GPIO5_IO04 	0x0b0b0
+			MX6UL_PAD_SNVS_TAMPER5__GPIO5_IO05 	0x0b0b0
+			MX6UL_PAD_SNVS_TAMPER6__GPIO5_IO06 	0x0b0b0
+			MX6UL_PAD_SNVS_TAMPER7__GPIO5_IO07  0x0b0b0
+			MX6UL_PAD_SNVS_TAMPER8__GPIO5_IO08  0x0b0b0
 		>;
 	};
 	/* Ethernet */
@@ -244,21 +242,6 @@
 	pinctrl_fec1_reset: fec1_resetgrp {
 		fsl,pins = <
 			MX6UL_PAD_SNVS_TAMPER9__GPIO5_IO09 0x79
-		>;
-	};
-
-	pinctrl_enet2: enet2grp {
-		fsl,pins = <
-			MX6UL_PAD_GPIO1_IO07__ENET2_MDC		0x1b0b0
-			MX6UL_PAD_GPIO1_IO06__ENET2_MDIO	0x1b0b0
-			MX6UL_PAD_ENET2_RX_EN__ENET2_RX_EN	0x1b0b0
-			MX6UL_PAD_ENET2_RX_ER__ENET2_RX_ER	0x1b0b0
-			MX6UL_PAD_ENET2_RX_DATA0__ENET2_RDATA00	0x1b0b0
-			MX6UL_PAD_ENET2_RX_DATA1__ENET2_RDATA01	0x1b0b0
-			MX6UL_PAD_ENET2_TX_EN__ENET2_TX_EN	0x1b0b0
-			MX6UL_PAD_ENET2_TX_DATA0__ENET2_TDATA00	0x1b0b0
-			MX6UL_PAD_ENET2_TX_DATA1__ENET2_TDATA01	0x1b0b0
-			MX6UL_PAD_ENET2_TX_CLK__ENET2_REF_CLK2	0x4001b031
 		>;
 	};
 	/* I2C */
@@ -287,28 +270,28 @@
 		>;
 	};
 	/* SPI */
-	pinctrl_spi1: spi1grp {
+	pinctrl_ecspi1: spi1grp {
 		fsl,pins = <
 			MX6UL_PAD_CSI_DATA04__ECSPI1_SCLK	0x000a0
 			MX6UL_PAD_CSI_DATA06__ECSPI1_MOSI	0x000a0
 			MX6UL_PAD_CSI_DATA07__ECSPI1_MISO	0x100a0
-			MX6UL_PAD_CSI_DATA05__ECSPI1_SS0	0x000a0
+			MX6UL_PAD_CSI_DATA05__GPIO4_IO26	0x1b0b0
 		>;
 	};
-	pinctrl_spi2: sp2grp {
+	pinctrl_ecspi2: sp2grp {
 		fsl,pins = <
 			MX6UL_PAD_UART4_TX_DATA__ECSPI2_SCLK 0x000a0
-			MX6UL_PAD_UART4_RX_DATA__ECSPI2_SS0	 0x000a0
+			MX6UL_PAD_UART4_RX_DATA__GPIO1_IO29	 0x1b0b0
 			MX6UL_PAD_UART5_TX_DATA__ECSPI2_MOSI 0x000a0	
 			MX6UL_PAD_UART5_RX_DATA__ECSPI2_MISO 0x100a0
 		>;
 	};		
-	pinctrl_spi4: spi4grp {
+	pinctrl_ecspi4: spi4grp {
 		fsl,pins = <
 			MX6UL_PAD_ENET2_TX_DATA1__ECSPI4_SCLK	0x000a0
 			MX6UL_PAD_ENET2_TX_EN__ECSPI4_MOSI		0x000a0
 			MX6UL_PAD_ENET2_TX_CLK__ECSPI4_MISO		0x100a0
-			MX6UL_PAD_UART4_RX_DATA__ECSPI2_SS0		0x000a0
+			MX6UL_PAD_ENET2_RX_ER__GPIO2_IO15		0x1b0b0
 		>;
 	};
 
