@@ -59,7 +59,7 @@
 /*
 #define MFG_NAND_PARTITION "mtdparts=gpmi-nand:64m(nandboot),16m(nandkernel),16m(nanddtb),16m(nandtee),-(nandrootfs)"
 */
-#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),-(nandrootfs) "
+#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),-(rootfs) "
 #else
 #define MFG_NAND_PARTITION ""
 #endif
@@ -87,7 +87,7 @@
 	"fdt_high=0xffffffff\0"	  \
 	"tee_addr=0x84000000\0" \
 	"console=ttymxc0\0" \
-	"bootargs=console=ttymxc0,115200 ubi.mtd=nandrootfs "  \
+	"bootargs=console=ttymxc0,115200 ubi.mtd=rootfs "  \
 		"root=ubi0:rootfs rootfstype=ubifs "		     \
 		BOOTARGS_CMA_SIZE \
 		MFG_NAND_PARTITION \

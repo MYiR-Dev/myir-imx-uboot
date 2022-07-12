@@ -448,8 +448,8 @@ static void list_videolink(bool current_only)
 		printf("\n");
 
 		for (j = 0; j < video_links[index].dev_num; j++) {
-			printf("\t[%d] %s, %s\n", j, video_links[index].link_devs[j]->name,
-				dev_get_uclass_name(video_links[index].link_devs[j]));
+			//printf("\t[%d] %s, %s\n", j, video_links[index].link_devs[j]->name,
+				//dev_get_uclass_name(video_links[index].link_devs[j]));
 		}
 	}
 }
