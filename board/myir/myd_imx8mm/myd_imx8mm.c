@@ -111,25 +111,33 @@ static iomux_v3_cfg_t const fec1_rst_pads[] = {
 	IMX8MM_PAD_SAI2_RXC_GPIO4_IO22 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
+
 static void setup_iomux_fec(void)
 {
+	static int phystatus=1;
+
 	imx_iomux_v3_setup_multiple_pads(fec1_rst_pads,
 					 ARRAY_SIZE(fec1_rst_pads));
 
 	gpio_request(FEC_RST_PAD, "fec1_rst");
 
-#ifdef  CONFIG_MOTORCOMM_YT 
+	if(phystatus){
+		/*phy8511*/
+		phystatus=0;
         gpio_direction_output(FEC_RST_PAD, 1);
         mdelay(10);
         gpio_direction_output(FEC_RST_PAD, 0);
-#else
-	gpio_direction_output(FEC_RST_PAD, 0);
-	mdelay(10);
-	gpio_direction_output(FEC_RST_PAD, 1);
-#endif
+	}else{
+		/*phy8035*/
+		phystatus=1;
+		gpio_direction_output(FEC_RST_PAD, 0);
+		mdelay(10);
+		gpio_direction_output(FEC_RST_PAD, 1);
+	}
+
 }
 
-static int setup_fec(void)
+int setup_fec(void)
 {
 	struct iomuxc_gpr_base_regs *gpr =
 		(struct iomuxc_gpr_base_regs *)IOMUXC_GPR_BASE_ADDR;

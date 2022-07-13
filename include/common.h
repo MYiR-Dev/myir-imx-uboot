@@ -77,6 +77,9 @@ void	main_loop	(void);
 int run_command(const char *cmd, int flag);
 int run_command_repeatable(const char *cmd, int flag);
 
+
+int setup_fec(void);
+
 /**
  * Run a list of commands separated by ; or even \0
  *

@@ -600,7 +600,7 @@ int uclass_next_device_err(struct udevice **devp)
 int uclass_first_device_check(enum uclass_id id, struct udevice **devp)
 {
 	int ret;
-
+	
 	*devp = NULL;
 	ret = uclass_find_first_device(id, devp);
 	if (ret)

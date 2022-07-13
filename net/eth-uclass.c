@@ -394,10 +394,13 @@ int eth_rx(void)
 	return ret;
 }
 
+
 int eth_initialize(void)
 {
 	int num_devices = 0;
 	struct udevice *dev;
+	int trytime=2;
+	int ret=0;
 
 	eth_common_init();
 
@@ -407,7 +410,16 @@ int eth_initialize(void)
 	 * This is accomplished by attempting to probe each device and calling
 	 * their write_hwaddr() operation.
 	 */
-	uclass_first_device_check(UCLASS_ETH, &dev);
+	while(trytime--){
+		 ret = uclass_first_device_check(UCLASS_ETH, &dev);
+		 if(ret == -ENODEV){
+			 setup_fec();
+		 }
+		 else{
+			 break;
+		 }
+	}
+
 	if (!dev) {
 		printf("No ethernet found.\n");
 		bootstage_error(BOOTSTAGE_ID_NET_ETH_START);

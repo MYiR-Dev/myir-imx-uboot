@@ -597,6 +597,7 @@ int phy_set_supported(struct phy_device *phydev, u32 max_speed)
 static int phy_probe(struct phy_device *phydev)
 {
 	int err = 0;
+	u32 phy_id = 0xffffffff;
 
 	phydev->advertising = phydev->drv->features;
 	phydev->supported = phydev->drv->features;
@@ -950,8 +951,10 @@ struct phy_device *phy_connect(struct mii_dev *bus, int addr,
 	if (!phydev)
 		phydev = phy_find_by_mask(bus, mask, interface);
 
-	if (phydev)
+	if (phydev){
 		phy_connect_dev(phydev, dev);
+		printf("get PHY for %s: addr %d\n", bus->name, addr);
+	}
 	else
 		printf("Could not get PHY for %s: addr %d\n", bus->name, addr);
 	return phydev;
