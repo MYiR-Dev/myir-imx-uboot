@@ -15,6 +15,11 @@ config IMX8MM
 	select IMX8M
 	select ARMV8_SPL_EXCEPTION_VECTORS
 
+config TARGET_MYD_JX8MM_LPDDR4
+	bool "myd_Jx8mma7 board"
+	select IMX8MM
+	select IMX8M_LPDDR4
+
 config IMX8MN
 	bool
 	select IMX8M
@@ -265,6 +270,7 @@ source "board/freescale/imx8mq_evk/Kconfig"
 source "board/freescale/imx8mq_val/Kconfig"
 source "board/freescale/imx8mm_ab2/Kconfig"
 source "board/freescale/imx8mm_evk/Kconfig"
+source "board/myir/myd_jx8mma7/Kconfig"
 source "board/freescale/imx8mm_val/Kconfig"
 source "board/freescale/imx8mn_evk/Kconfig"
 source "board/freescale/imx8mp_evk/Kconfig"
