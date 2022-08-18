@@ -17,6 +17,8 @@
 #include <asm/mach-imx/mxc_i2c.h>
 #include <i2c.h>
 #include <asm/io.h>
+#include <power/pmic.h>
+#include <power/bd71837.h>
 #include "../common/tcpc.h"
 #include <usb.h>
 #include <imx_sip.h>
@@ -27,15 +29,26 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_FSEL1)
 #define WDOG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
+#define FPFA_POWER_GPIO IMX_GPIO_NR(3, 23)
+#define PMIC_PWREN_GPIO IMX_GPIO_NR(4, 27)
+#define PMIC_PWRWODOG_GPIO IMX_GPIO_NR(4, 25)
+static iomux_v3_cfg_t const fpgapower_pads[] = {
+	               IMX8MM_PAD_SAI5_RXD2_GPIO3_IO23 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
 
 static iomux_v3_cfg_t const uart_pads[] = {
 	IMX8MM_PAD_UART2_RXD_UART2_RX | MUX_PAD_CTRL(UART_PAD_CTRL),
 	IMX8MM_PAD_UART2_TXD_UART2_TX | MUX_PAD_CTRL(UART_PAD_CTRL),
 };
+static iomux_v3_cfg_t const pmicgpio_pads[] = {
+        IMX8MM_PAD_SAI2_MCLK_GPIO4_IO27 | MUX_PAD_CTRL(NO_PAD_CTRL),
+        IMX8MM_PAD_SAI2_TXC_GPIO4_IO25 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
 
 static iomux_v3_cfg_t const wdog_pads[] = {
 	IMX8MM_PAD_GPIO1_IO02_WDOG1_WDOG_B  | MUX_PAD_CTRL(WDOG_PAD_CTRL),
 };
+
 
 #ifdef CONFIG_NAND_MXS
 #ifdef CONFIG_SPL_BUILD
@@ -88,6 +101,66 @@ int board_early_init_f(void)
 #endif
 
 	return 0;
+}
+static int pmic_i2c_reg_write(struct udevice *dev, uint addr, u8 data)
+{
+        //uint8_t valb;
+        int err;
+        err = dm_i2c_write(dev, addr, &data, 1);
+        return err;
+}
+
+static void pmic_init_fpga(void)
+{
+        struct udevice *bus,*main_dev;
+        int i2c_bus = 1;
+        int ret=0;
+        printf("init pmic for fpga\n");
+        ret = uclass_get_device_by_seq(UCLASS_I2C, i2c_bus, &bus);
+        if (ret) {
+                printf("%s: No bus %d\n", __func__, i2c_bus);
+                return;
+        }
+        ret = dm_i2c_probe(bus, 0x4b, 0, &main_dev);
+        if (ret) {
+                printf("%s: Can't find device id=0x%x, on bus %d\n",__func__, 0x4b, i2c_bus);
+                return;
+        }
+		pmic_i2c_reg_write(main_dev, BD718XX_PWRONCONFIG1, 0x0);
+        pmic_i2c_reg_write(main_dev, BD718XX_REGLOCK, 0x01);
+        pmic_i2c_reg_write(main_dev, BD718XX_BUCK1_VOLT_RUN, 0x1e);
+        pmic_i2c_reg_write(main_dev, BD718XX_BUCK2_VOLT_RUN, 0x05);
+        pmic_i2c_reg_write(main_dev, BD718XX_1ST_NODVS_BUCK_VOLT, 0x03);
+        pmic_i2c_reg_write(main_dev, BD718XX_2ND_NODVS_BUCK_VOLT, 0x03);
+        pmic_i2c_reg_write(main_dev, BD718XX_4TH_NODVS_BUCK_VOLT, 0x03);
+        pmic_i2c_reg_write(main_dev, BD718XX_4TH_NODVS_BUCK_VOLT, 0x37);
+        pmic_i2c_reg_write(main_dev, BD718XX_LDO1_VOLT, 0x06);
+        pmic_i2c_reg_write(main_dev, BD718XX_LDO2_VOLT, 0x01);
+
+        pmic_i2c_reg_write(main_dev, BD718XX_LDO3_VOLT, 0x0);
+        pmic_i2c_reg_write(main_dev, BD718XX_LDO4_VOLT, 0x01);
+        //pmic_i2c_reg_write(main_dev, BD71837_LDO5_VOLT, 0x0);
+        pmic_i2c_reg_write(main_dev, BD718XX_LDO6_VOLT, 0x03);
+        pmic_i2c_reg_write(main_dev, 0x21,0);
+        pmic_i2c_reg_write(main_dev, BD718XX_REGLOCK, 0x11);
+#if 1
+        mdelay(20);
+        imx_iomux_v3_setup_multiple_pads(
+                pmicgpio_pads, ARRAY_SIZE(pmicgpio_pads));
+        gpio_request(PMIC_PWREN_GPIO, "PMIC_EN");
+        gpio_request(PMIC_PWRWODOG_GPIO, "PMIC_WDOG");
+        gpio_direction_output(PMIC_PWREN_GPIO, 1);
+        gpio_direction_output(PMIC_PWRWODOG_GPIO, 1);
+#endif
+
+        /* power on fpga */
+        mdelay(20);
+        imx_iomux_v3_setup_multiple_pads(
+                fpgapower_pads, ARRAY_SIZE(fpgapower_pads));
+        gpio_request(FPFA_POWER_GPIO, "FPGA_POWER_EN");
+        gpio_direction_output(FPFA_POWER_GPIO, 1);
+
+        return;
 }
 
 #if IS_ENABLED(CONFIG_FEC_MXC)
@@ -318,6 +391,7 @@ int board_ehci_usb_phy_mode(struct udevice *dev)
 
 int board_init(void)
 {
+	pmic_init_fpga();
 	struct arm_smccc_res res;
 
 #ifdef CONFIG_USB_TCPC
