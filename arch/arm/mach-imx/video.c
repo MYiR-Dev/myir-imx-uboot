@@ -46,7 +46,7 @@ int board_video_skip(void)
 				break;
 		}
 	}
-
+	//printk("board_video_skip ok!\n");
 	if (i < display_count) {
 #if defined(CONFIG_VIDEO_IPUV3)
 		ret = ipuv3_fb_init(&displays[i].mode, displays[i].di ? 1 : 0,

@@ -90,13 +90,13 @@
 	num-channels = <4>;
 	status = "disabled";
 };
-
+/*
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
 	xceiver-supply = <&reg_can1_en>;
 	status = "disabled";
-};
+};*/
 
 &clks {
 	assigned-clocks = <&clks IMX6UL_CLK_PLL4_AUDIO_DIV>;

@@ -19,11 +19,11 @@
 &adc1 {
 	status = "okay";
 };
-
+/*
 &can1 {
 	status = "okay";
 };
-
+*/
 &tlv320 {
 	status = "okay";
 };

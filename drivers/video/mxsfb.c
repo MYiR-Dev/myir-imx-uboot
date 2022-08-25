@@ -223,7 +223,7 @@ static int mxs_remove_common(phys_addr_t reg_base, u32 fb)
 }
 
 #ifndef CONFIG_DM_VIDEO
-
+//#ifndef CONFIG_VIDEO
 static GraphicDevice panel;
 static int setup;
 static struct fb_videomode fbmode;

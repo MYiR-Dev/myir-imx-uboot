@@ -112,7 +112,7 @@
 		};
 	};
 };
-
+/*
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
@@ -125,7 +125,7 @@
 	pinctrl-0 = <&pinctrl_flexcan2>;
 	xceiver-supply = <&reg_can_3v3>;
 	status = "okay";
-};
+};*/
 
 &i2c1 {
 	clock-frequency = <100000>;

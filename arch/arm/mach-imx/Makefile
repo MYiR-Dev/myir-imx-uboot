@@ -46,6 +46,7 @@ obj-$(CONFIG_FSL_MFGPROT) += cmd_mfgprot.o
 endif
 ifeq ($(SOC),$(filter $(SOC),mx5 mx6 mx7))
 obj-$(CONFIG_IMX_VIDEO_SKIP) += video.o
+#obj-$y += video.o
 endif
 ifeq ($(SOC),$(filter $(SOC),mx6 mx7))
 obj-y 	+= cache.o init.o

@@ -708,7 +708,10 @@ dtb-$(CONFIG_MX6UL) += \
 	imx6ul-liteboard.dtb \
 	imx6ul-phytec-segin-ff-rdk-nand.dtb \
 	imx6ul-pico-hobbit.dtb \
-	imx6ul-pico-pi.dtb
+	imx6ul-pico-pi.dtb \
+	myb-imx6ul-14x14-base.dtb \
+        myb-imx6ul-14x14-gpmi-weim.dtb \
+        myb-imx6ul-14x14-emmc.dtb
 
 dtb-$(CONFIG_MX6ULL) += \
 	imx6ull-14x14-ddr3-val.dtb \
@@ -728,7 +731,10 @@ dtb-$(CONFIG_MX6ULL) += \
 	imx6ulz-14x14-evk-emmc.dtb \
 	imx6ulz-14x14-evk-gpmi-weim.dtb \
 	mys-6ull-14x14-emmc.dtb \
-	mys-6ull-14x14-gpmi-weim.dtb
+	mys-6ull-14x14-gpmi-weim.dtb \
+	myb-imx6ull-14x14-base.dtb \
+        myb-imx6ull-14x14-gpmi-weim.dtb \
+        myb-imx6ull-14x14-emmc.dtb
 
 dtb-$(CONFIG_ARCH_MX6) += \
 	imx6-apalis.dtb \
