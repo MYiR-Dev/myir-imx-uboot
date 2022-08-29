@@ -710,8 +710,10 @@ dtb-$(CONFIG_MX6UL) += \
 	imx6ul-pico-hobbit.dtb \
 	imx6ul-pico-pi.dtb \
 	myb-imx6ul-14x14-base.dtb \
-        myb-imx6ul-14x14-gpmi-weim.dtb \
-        myb-imx6ul-14x14-emmc.dtb
+	myb-imx6ul-14x14-gpmi-weim.dtb \
+	myb-imx6ul-14x14-emmc.dtb \
+	mys-6ul-14x14-emmc.dtb \
+	mys-6ul-14x14-gpmi-weim.dtb 
 
 dtb-$(CONFIG_MX6ULL) += \
 	imx6ull-14x14-ddr3-val.dtb \

@@ -1,13 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Copyright (C) 2016 Freescale Semiconductor, Inc.
+ * Copyright (C) 2015-2016 Freescale Semiconductor, Inc.
  * Copyright 2017 NXP
  *
  * Configuration settings for the Freescale i.MX6UL 14x14 EVK board.
  */
-#ifndef __MX6ULLEVK_CONFIG_H
-#define __MX6ULLEVK_CONFIG_H
-
+#ifndef __MX6UL_14X14_EVK_CONFIG_H
+#define __MX6UL_14X14_EVK_CONFIG_H
 
 #include <asm/arch/imx-regs.h>
 #include <linux/sizes.h>
@@ -15,9 +14,12 @@
 #include <asm/mach-imx/gpio.h>
 #include "imx_env.h"
 
-#define is_mx6ull_9x9_evk()	CONFIG_IS_ENABLED(TARGET_MX6ULL_9X9_EVK)
+/* uncomment for BEE support, needs to enable CONFIG_CMD_FUSE */
+/* #define CONFIG_CMD_BEE */
 
-#ifdef CONFIG_TARGET_MX6ULL_9X9_EVK
+#define is_mx6ul_9x9_evk()	CONFIG_IS_ENABLED(TARGET_MX6UL_9X9_EVK)
+
+#ifdef CONFIG_TARGET_MX6UL_9X9_EVK
 #define PHYS_SDRAM_SIZE		SZ_256M
 #define BOOTARGS_CMA_SIZE   "cma=96M "
 #else
@@ -26,6 +28,9 @@
 /* DCDC used on 14x14 EVK, no PMIC */
 #undef CONFIG_LDO_BYPASS_CHECK
 #endif
+
+/* SPL options */
+#include "imx6_spl.h"
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(16 * SZ_1M)
@@ -43,6 +48,7 @@
 #else
 #define CONFIG_SYS_FSL_USDHC_NUM	2
 #endif
+
 #endif
 
 /* I2C configs */
@@ -155,7 +161,6 @@
 		"root=/dev/nfs " \
 	"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
 		"netboot=echo Booting from net ...; " \
-		"${usb_net_cmd}; " \
 		"run netargs; " \
 		"if test ${ip_dyn} = yes; then " \
 			"setenv get_cmd dhcp; " \
@@ -217,11 +222,9 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* environment organization */
-#define CONFIG_SYS_MMC_ENV_DEV		1	/* USDHC2 */
+#define CONFIG_SYS_MMC_ENV_DEV		1   /* USDHC2 */
 #define CONFIG_SYS_MMC_ENV_PART		0	/* user area */
 #define CONFIG_MMCROOT			"/dev/mmcblk1p2"  /* USDHC2 */
-
-#define CONFIG_IOMUX_LPSR
 
 /* NAND stuff */
 #ifdef CONFIG_NAND_MXS
@@ -233,7 +236,6 @@
 
 /* DMA stuff, needed for GPMI/MXS NAND support */
 #endif
-
 #if defined(CONFIG_ENV_IS_IN_SPI_FLASH)
 #define CONFIG_ENV_SPI_BUS		CONFIG_SF_DEFAULT_BUS
 #define CONFIG_ENV_SPI_CS		CONFIG_SF_DEFAULT_CS
@@ -269,5 +271,4 @@
 
 #define CONFIG_MODULE_FUSE
 #define CONFIG_OF_SYSTEM_SETUP
-
 #endif

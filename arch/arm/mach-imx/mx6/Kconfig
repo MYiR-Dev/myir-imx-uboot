@@ -567,6 +567,15 @@ config TARGET_MX6UL_14X14_EVK
 	select SUPPORT_SPL
 	imply CMD_DM
 
+config TARGET_MYS_6UL_14X14
+	bool "mys_6ul_14x14"
+	select BOARD_LATE_INIT
+	select DM
+	select DM_THERMAL
+	select MX6UL
+	select SUPPORT_SPL
+	imply CMD_DM
+
 config TARGET_MX6UL_14X14_DDR3_VAL
 	bool "mx6ul_14x14_ddr3_val"
 	select BOARD_LATE_INIT
@@ -927,6 +936,7 @@ source "board/wandboard/Kconfig"
 source "board/warp/Kconfig"
 source "board/BuR/brppt2/Kconfig"
 source "board/myir/mys-6ull-14x14/Kconfig"
+source "board/myir/mys-6ul-14x14/Kconfig"
 source "board/myir/myd_imx6ull_14x14/Kconfig"
 source "board/myir/myd_imx6ul_14x14/Kconfig"
 
