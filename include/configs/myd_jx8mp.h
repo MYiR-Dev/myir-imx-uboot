@@ -199,12 +199,18 @@
 #define PHYS_SDRAM_SIZE			0x80000000	/* 2 GB */
 #define PHYS_SDRAM_2			0xC0000000
 #define PHYS_SDRAM_2_SIZE		0x80000000	/* 2 GB */
-
+#else
+#ifdef CONFIG_IMX8M_2G_LPDDR4
+#define PHYS_SDRAM			    0x40000000
+#define PHYS_SDRAM_SIZE			0x40000000	/* 1 GB */
+#define PHYS_SDRAM_2			0x80000000
+#define PHYS_SDRAM_2_SIZE		0x40000000	/* 1 GB */
 #else
 #define PHYS_SDRAM			    0x40000000
 #define PHYS_SDRAM_SIZE			0x60000000	/* 1.5 GB */
 #define PHYS_SDRAM_2			0xa0000000
 #define PHYS_SDRAM_2_SIZE		0x60000000	/* 1.5 GB */
+#endif
 #endif
 
 #define CONFIG_SYS_MEMTEST_START	0x60000000
