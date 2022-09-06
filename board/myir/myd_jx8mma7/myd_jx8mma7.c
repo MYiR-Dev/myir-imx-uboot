@@ -24,7 +24,8 @@
 #include <imx_sip.h>
 #include <linux/arm-smccc.h>
 #include <linux/delay.h>
-
+#include <spi.h>
+#include <spi_flash.h>
 DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_FSEL1)
@@ -83,7 +84,92 @@ static void setup_gpmi_nand(void)
 	init_nand_clk();
 }
 #endif
+struct myd_jx8mp_st{
+	char pn[256];
+	char sn[256];
+	char mac0[256];
+	char mac1[256];
+	char reserve[1024];
 
+};
+#define FACTORY_DATA_OFFS 0x1f00000
+static void factory_data_env_config(void)
+{
+	struct myd_jx8mp_st param;
+	struct spi_flash *sf;
+	int env_updated = 0;
+	char *env;
+	int ret;
+	char mac0[18]={0};
+	char mac1[18]={0};
+	int i,j;
+
+
+	/*
+	 * Get values from factory-data area in SPI NOR
+	 */
+	sf = spi_flash_probe(CONFIG_SF_DEFAULT_BUS,
+			     CONFIG_SF_DEFAULT_CS,
+			     CONFIG_SF_DEFAULT_SPEED,
+			     CONFIG_SF_DEFAULT_MODE);
+	if (!sf) {
+		printf("F-Data:Unable to access SPI NOR flash\n");
+		goto err;
+	}
+
+	ret = spi_flash_read(sf, FACTORY_DATA_OFFS, sizeof(param),
+			     (void *)&(param));
+	if (ret) {
+		printf("F-Data:Unable to read factory-data from SPI NOR\n");
+		goto err;
+	}
+	printf("\n");
+
+	printf(">>>PN=%s\n",param.pn);
+	printf(">>>SN=%s\n",param.sn);
+	if(is_valid_ethaddr(param.mac0)){
+		memset(mac0,0,sizeof(mac0));
+		snprintf(mac0,sizeof(mac0),"%02x:%02x:%02x:%02x:%02x:%02x",
+			param.mac0[0],param.mac0[1],param.mac0[2],param.mac0[3],param.mac0[4],param.mac0[5]);
+
+		
+		printf(">>>MAC0=%s\n",mac0);
+
+		env = env_get("ethaddr");
+		if (strcmp(env, mac0)) {
+			env_set("ethaddr",mac0);
+			env_updated=1;
+		}
+		
+	}
+	if(is_valid_ethaddr(param.mac1)){
+		memset(mac1,0,sizeof(mac1));
+		snprintf(mac1,sizeof(mac1),"%02x:%02x:%02x:%02x:%02x:%02x",
+			param.mac1[0],param.mac1[1],param.mac1[2],param.mac1[3],param.mac1[4],param.mac1[5]);
+
+		
+		printf(">>>MAC1=%s\n",mac1);
+
+		env = env_get("eth1addr");
+		if (strcmp(env, mac1)) {
+			env_set("eth1addr",mac1);
+			env_updated=1;
+		}
+	}
+	/* Check if the environment was updated and needs to get stored */
+	if (env_updated != 0) {
+		printf("F-Data:Values don't match env values -> saving\n");
+		env_save();
+	} else {
+		debug("F-Data:Values match current env values\n");
+	}
+
+
+	spi_flash_free(sf);
+
+err:
+	;
+}
 int board_early_init_f(void)
 {
 	struct wdog_regs *wdog = (struct wdog_regs *)WDOG1_BASE_ADDR;
@@ -126,7 +212,7 @@ static void pmic_init_fpga(void)
                 printf("%s: Can't find device id=0x%x, on bus %d\n",__func__, 0x4b, i2c_bus);
                 return;
         }
-		pmic_i2c_reg_write(main_dev, BD718XX_PWRONCONFIG1, 0x0);
+	pmic_i2c_reg_write(main_dev, BD718XX_PWRONCONFIG1, 0x0);
         pmic_i2c_reg_write(main_dev, BD718XX_REGLOCK, 0x01);
         pmic_i2c_reg_write(main_dev, BD718XX_BUCK1_VOLT_RUN, 0x1e);
         pmic_i2c_reg_write(main_dev, BD718XX_BUCK2_VOLT_RUN, 0x05);
@@ -419,6 +505,7 @@ int board_late_init(void)
 	env_set("board_name", "EVK");
 	env_set("board_rev", "iMX8MM");
 #endif
+	factory_data_env_config();
 	return 0;
 }
 
