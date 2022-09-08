@@ -20,7 +20,7 @@
 		spi0 = &flexspi;
 	};
 };
-/*
+
 &ddrc {
 	operating-points-v2 = <&ddrc_opp_table>;
 
@@ -40,7 +40,7 @@
 		};
 	};
 };
-*/
+
 &flexspi {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexspi>;

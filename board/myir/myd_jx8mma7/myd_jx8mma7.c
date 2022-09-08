@@ -102,7 +102,6 @@ static void factory_data_env_config(void)
 	int ret;
 	char mac0[18]={0};
 	char mac1[18]={0};
-	int i,j;
 
 
 	/*
