@@ -61,6 +61,13 @@
 
 #endif
 
+#ifdef CONFIG_IMX8M_2G_LPDDR4
+#define MMCARGS "mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot} cma=640M \0" 
+#else
+#define MMCARGS "mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot}  \0" 
+#endif
+
+
 #define JAILHOUSE_ENV \
 	"jh_clk= \0 " \
 	"jh_mmcboot=setenv fdt_file imx8mp-evk-root.dtb;" \
@@ -117,7 +124,7 @@
 	"mmcpart=" __stringify(CONFIG_SYS_MMC_IMG_LOAD_PART) "\0" \
 	"mmcroot=" CONFIG_MMCROOT " rootwait rw\0" \
 	"mmcautodetect=yes\0" \
-	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot}\0 " \
+	MMCARGS \
 	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \
