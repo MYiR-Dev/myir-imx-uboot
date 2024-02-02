@@ -16,8 +16,8 @@ ifdef CONFIG_IMX9_DRAM_INLINE_ECC
 obj-$(CONFIG_IMX93_EVK_LPDDR4X_1G) += lpddr4x_timing_ecc.o
 obj-$(CONFIG_IMX93_EVK_LPDDR4X_2G) += lpddr4x_timing_ecc.o
 else
-obj-$(CONFIG_IMX93_EVK_LPDDR4X_1G) += lpddr4x_timing.o
-obj-$(CONFIG_IMX93_EVK_LPDDR4X_1G) += lpddr4x_timing.o
+obj-$(CONFIG_IMX93_EVK_LPDDR4X_1G) += lpddr4x_timing_1g.o
+obj-$(CONFIG_IMX93_EVK_LPDDR4X_2G) += lpddr4x_timing_2g.o
 endif
 endif
 endif
