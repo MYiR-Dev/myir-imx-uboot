@@ -20,6 +20,8 @@
 #include <usb.h>
 #include <dwc3-uboot.h>
 #include <asm/gpio.h>
+#include "i2c_eeprom_myir.h"
+static int has_been_read;
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -302,6 +304,7 @@ static void board_gpio_init(void)
 
 int board_init(void)
 {
+	int ret;
 #ifdef CONFIG_USB_TCPC
 	setup_typec();
 #endif
@@ -314,12 +317,19 @@ int board_init(void)
 
 	board_gpio_init();
 
+       if (!has_been_read) {
+               ret = read_eeprom();
+               if (ret)
+                       printf("Error %d reading EEPROM content!\n", ret);
+               has_been_read = (ret == 0) ? 1 : 0;
+               show_eeprom();
+       }
+
 	return 0;
 }
 
 int board_late_init(void)
 {
-
 printk("myir board:MYD-LMX93X");
 #ifdef CONFIG_ENV_IS_IN_MMC
 	board_late_mmc_env_init();

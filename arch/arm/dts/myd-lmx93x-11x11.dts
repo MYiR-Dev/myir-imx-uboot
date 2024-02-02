@@ -153,6 +153,12 @@ dsi_host: dsi-host {
 	pinctrl-1 = <&pinctrl_lpi2c2>;
 	status = "okay";
 
+	eeprom: 24c32@50 {
+                compatible = "atmel,24c32";
+                reg = <0x50>;
+                pagesize = <32>;
+        };
+
 	pmic@25 {
 		compatible = "nxp,pca9451a";
 		reg = <0x25>;
@@ -301,6 +307,7 @@ dsi_host: dsi-host {
 			op-sink-microwatt = <15000000>;
 			self-powered;
 		};
+
 	};
 };
 
