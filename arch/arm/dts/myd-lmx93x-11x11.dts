@@ -56,7 +56,6 @@
 		regulator-name = "reg_vdd_12v";
 		regulator-min-microvolt = <12000000>;
 		regulator-max-microvolt = <12000000>;
-		gpio = <&pcal6524 14 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 	};
 
@@ -69,7 +68,6 @@
 
 	usdhc3_pwrseq: usdhc3_pwrseq {
 		compatible = "mmc-pwrseq-simple";
-		reset-gpios = <&pcal6524 20 GPIO_ACTIVE_LOW>;
 	};
 
 dsi_host: dsi-host {
@@ -77,24 +75,6 @@ dsi_host: dsi-host {
 		status = "okay";
 	};
 
-	rm67199_panel {
-		compatible = "raydium,rm67199";
-		reset-gpio = <&adp5585gpio 6 GPIO_ACTIVE_LOW>;
-		dsi-lanes = <4>;
-		video-mode = <2>;	/* 0: burst mode
-					 * 1: non-burst mode with sync event
-					 * 2: non-burst mode with sync pulse
-					 */
-		width-mm = <68>;
-		height-mm = <121>;
-		status = "okay";
-
-		port {
-			panel_in: endpoint {
-				remote-endpoint = <&dsi_out>;
-			};
-		};
-	};
 };
 
 &dphy {
@@ -104,19 +84,6 @@ dsi_host: dsi-host {
 &dsi {
 	status = "okay";
 
-	ports {
-		port@1 {
-			dsi_to_adv7535: endpoint {
-				remote-endpoint = <&adv7535_to_dsi>;
-			};
-		};
-
-		port@2 {
-			dsi_out: endpoint {
-				remote-endpoint = <&panel_in>;
-			};
-		};
-	};
 };
 
 &eqos {
@@ -134,7 +101,7 @@ dsi_host: dsi-host {
 
 		ethphy1: ethernet-phy@1 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <1>;
+			reg = <4>;
 			eee-broken-1000t;
 		};
 	};
@@ -155,7 +122,7 @@ dsi_host: dsi-host {
 
 		ethphy2: ethernet-phy@2 {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <2>;
+			reg = <6>;
 			eee-broken-1000t;
 		};
 	};
@@ -175,19 +142,6 @@ dsi_host: dsi-host {
 	pinctrl-1 = <&pinctrl_lpi2c1>;
 	status = "okay";
 
-	adv7535: hdmi@3d {
-		compatible = "adi,adv7535";
-		reg = <0x3d>;
-		adi,addr-cec = <0x3c>;
-		adi,dsi-lanes = <4>;
-		status = "okay";
-
-		port {
-			adv7535_to_dsi: endpoint {
-				remote-endpoint = <&dsi_to_adv7535>;
-			};
-		};
-	};
 };
 
 &lpi2c2 {
@@ -202,8 +156,6 @@ dsi_host: dsi-host {
 	pmic@25 {
 		compatible = "nxp,pca9451a";
 		reg = <0x25>;
-		interrupt-parent = <&pcal6524>;
-		interrupts = <11 IRQ_TYPE_LEVEL_LOW>;
 
 		regulators {
 			buck1: BUCK1 {
@@ -274,18 +226,6 @@ dsi_host: dsi-host {
 		};
 	};
 
-	pcal6524: gpio@22 {
-		compatible = "nxp,pcal6524";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_pcal6524>;
-		reg = <0x22>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		interrupt-controller;
-		#interrupt-cells = <2>;
-		interrupt-parent = <&gpio3>;
-		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
-	};
 
 	adp5585gpio: gpio@34 {
 		compatible = "adp5585";
@@ -307,16 +247,14 @@ dsi_host: dsi-host {
 	pcf2131: rtc@53 {
 		compatible = "nxp,pcf2131";
 		reg = <0x53>;
-		interrupt-parent = <&pcal6524>;
-		interrupts = <1 IRQ_TYPE_LEVEL_LOW>;
+
 		status = "okay";
 	};
 
 	ptn5110: tcpc@50 {
 		compatible = "nxp,ptn5110";
 		reg = <0x50>;
-		interrupt-parent = <&pcal6524>;
-		interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+
 		status = "okay";
 
 		port {
@@ -342,8 +280,7 @@ dsi_host: dsi-host {
 	ptn5110_2: tcpc@51 {
 		compatible = "nxp,ptn5110";
 		reg = <0x51>;
-		interrupt-parent = <&pcal6524>;
-		interrupts = <9 IRQ_TYPE_EDGE_FALLING>;
+
 		status = "okay";
 
 		port {
