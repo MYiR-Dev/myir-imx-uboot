@@ -281,13 +281,13 @@ static void board_gpio_init(void)
         if (ret)
                 return;
         dm_gpio_set_dir_flags(&desc_eth0, GPIOD_IS_OUT);
-        dm_gpio_set_value(&desc_eth0, 0);
+        dm_gpio_set_value(&desc_eth0, 1);
 		dm_gpio_set_dir_flags(&desc_eth1, GPIOD_IS_OUT);
-        dm_gpio_set_value(&desc_eth1, 0);
+        dm_gpio_set_value(&desc_eth1, 1);
 
         udelay(10000);
-        dm_gpio_set_value(&desc_eth0, 1);
-		dm_gpio_set_value(&desc_eth1, 1);
+        dm_gpio_set_value(&desc_eth0, 0);
+		dm_gpio_set_value(&desc_eth1, 0);
      
 
 	/* Enable EXT1_PWREN for PCIE_3.3V */
