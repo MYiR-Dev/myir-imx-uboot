@@ -3,13 +3,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0+
  *
- * Code generated with DDR Tool v2.0.0_5.3.
+ * Code generated with DDR Tool v2.0.0_6.
  */
 
 #include <linux/kernel.h>
 #include <asm/arch/ddr.h>
 
-struct dram_cfg_param ddr_ddrc_cfg[] = {
+static struct dram_cfg_param ddr_ddrc_cfg[] = {
     /** Initialize DDRC registers **/
     {0x4e300110, 0x44100001},
     {0x4e300000, 0x8000ff},
@@ -37,35 +37,6 @@ struct dram_cfg_param ddr_ddrc_cfg[] = {
 static struct dram_fsp_cfg ddr_dram_fsp_cfg[] = {
     {
         {
-            {0x4e300100, 0x24AB321B},
-            {0x4e300104, 0xF8EE001B},
-            {0x4e300108, 0x2F2EE233},
-            {0x4e30010C, 0x0005E18B},
-            {0x4e300124, 0x1C770000},
-            {0x4e300160, 0x00009102},
-            {0x4e30016C, 0x35F00000},
-            {0x4e300170, 0x8B0B0608},
-            {0x4e300250, 0x00000028},
-            {0x4e300254, 0x015B015B},
-            {0x4e300258, 0x00000008},
-            {0x4e30025C, 0x00000400},
-            {0x4e300300, 0x224F2213},
-            {0x4e300304, 0x015B2213},
-            {0x4e300308, 0x0A3C0E3C},
-        },
-        {
-            {0x01, 0xE4},
-            {0x02, 0x36},
-            {0x03, 0x32},
-            {0x0b, 0x46},
-            {0x0c, 0x11},
-            {0x0e, 0x11},
-            {0x16, 0x04},
-        },
-        0,
-    },
-    {
-        {
             {0x4e300100, 0x12552100},
             {0x4e300104, 0xF877000E},
             {0x4e300108, 0x1816B4AA},
@@ -78,10 +49,39 @@ static struct dram_fsp_cfg ddr_dram_fsp_cfg[] = {
             {0x4e300254, 0x00AA00AA},
             {0x4e300258, 0x00000008},
             {0x4e30025C, 0x00000400},
+            {0x4e300300, 0x11281109},
+            {0x4e300304, 0x00AA140A},
+            {0x4e300308, 0x0620071E},
         },
         {
             {0x01, 0xB4},
             {0x02, 0x1B},
+            {0x03, 0x32},
+            {0x0b, 0x46},
+            {0x0c, 0x11},
+            {0x0e, 0x11},
+            {0x16, 0x04},
+        },
+        0,
+    },
+    {
+        {
+            {0x4e300100, 0x010A1000},
+            {0x4e300104, 0xF855000A},
+            {0x4e300108, 0x9492AA58},
+            {0x4e30010C, 0x00310113},
+            {0x4e300124, 0x071E0000},
+            {0x4e300160, 0x00009102},
+            {0x4e30016C, 0x30200000},
+            {0x4e300170, 0x89090408},
+            {0x4e300250, 0x0000000A},
+            {0x4e300254, 0x00510051},
+            {0x4e300258, 0x00000008},
+            {0x4e30025C, 0x00000400},
+        },
+        {
+            {0x01, 0x94},
+            {0x02, 0x9},
             {0x03, 0x32},
             {0x0b, 0x46},
             {0x0c, 0x11},
@@ -120,7 +120,7 @@ static struct dram_fsp_cfg ddr_dram_fsp_cfg[] = {
 };
 
 /* PHY Initialize Configuration */
-struct dram_cfg_param ddr_ddrphy_cfg[] = {
+static struct dram_cfg_param ddr_ddrphy_cfg[] = {
     {0x100a0, 0x4},
     {0x100a1, 0x5},
     {0x100a2, 0x6},
@@ -152,11 +152,11 @@ struct dram_cfg_param ddr_ddrphy_cfg[] = {
     {0x55, 0x1ff},
     {0x1055, 0x1ff},
     {0x2055, 0x1ff},
-    {0x200c5, 0x19},
-    {0x1200c5, 0xb},
+    {0x200c5, 0xb},
+    {0x1200c5, 0x3},
     {0x2200c5, 0x7},
     {0x2002e, 0x2},
-    {0x12002e, 0x2},
+    {0x12002e, 0x1},
     {0x22002e, 0x2},
     {0x90204, 0x0},
     {0x190204, 0x0},
@@ -207,8 +207,8 @@ struct dram_cfg_param ddr_ddrphy_cfg[] = {
     {0x20075, 0x4},
     {0x20050, 0x0},
     {0x2009b, 0x2},
-    {0x20008, 0x3a5},
-    {0x120008, 0x1d3},
+    {0x20008, 0x1d3},
+    {0x120008, 0xe9},
     {0x220008, 0x9c},
     {0x20088, 0x9},
     {0x200b2, 0x10c},
@@ -249,14 +249,14 @@ struct dram_cfg_param ddr_ddrphy_cfg[] = {
     {0x2002c, 0x0},
     {0x20021, 0x0},
     {0x200c7, 0x21},
-    {0x1200c7, 0x21},
+    {0x1200c7, 0x41},
     {0x200ca, 0x24},
     {0x1200ca, 0x24},
 
 };
 
 /* ddr phy trained csr */
-struct dram_cfg_param ddr_ddrphy_trained_csr[] = {
+static struct dram_cfg_param ddr_ddrphy_trained_csr[] = {
     {0x1005f, 0x0},
     {0x1015f, 0x0},
     {0x1105f, 0x0},
@@ -1237,49 +1237,12 @@ struct dram_cfg_param ddr_ddrphy_trained_csr[] = {
 };
 
 /* P0 message block parameter for training firmware */
-struct dram_cfg_param ddr_fsp0_cfg[] = {
+static struct dram_cfg_param ddr_fsp0_cfg[] = {
     {0xd0000, 0x0},
-    {0x54003, 0xe94},
-    {0x54004, 0x4},
-    {0x54006, 0x15},
-    {0x54008, 0x131f},
-    {0x54009, 0xc8},
-    {0x5400b, 0x4},
-    {0x5400d, 0x100},
-    {0x5400f, 0x100},
-    {0x54012, 0x110},
-    {0x54019, 0x36e4},
-    {0x5401a, 0x32},
-    {0x5401b, 0x1146},
-    {0x5401c, 0x1108},
-    {0x5401e, 0x4},
-    {0x5401f, 0x36e4},
-    {0x54020, 0x32},
-    {0x54021, 0x1146},
-    {0x54022, 0x1108},
-    {0x54024, 0x4},
-    {0x54032, 0xe400},
-    {0x54033, 0x3236},
-    {0x54034, 0x4600},
-    {0x54035, 0x811},
-    {0x54036, 0x11},
-    {0x54037, 0x400},
-    {0x54038, 0xe400},
-    {0x54039, 0x3236},
-    {0x5403a, 0x4600},
-    {0x5403b, 0x811},
-    {0x5403c, 0x11},
-    {0x5403d, 0x400},
-    {0xd0000, 0x1}
-};
-/* P1 message block parameter for training firmware */
-struct dram_cfg_param ddr_fsp1_cfg[] = {
-    {0xd0000, 0x0},
-    {0x54002, 0x1},
     {0x54003, 0x74a},
     {0x54004, 0x4},
     {0x54006, 0x15},
-    {0x54008, 0x121f},
+    {0x54008, 0x131f},
     {0x54009, 0xc8},
     {0x5400b, 0x4},
     {0x5400d, 0x100},
@@ -1309,9 +1272,45 @@ struct dram_cfg_param ddr_fsp1_cfg[] = {
     {0x5403d, 0x400},
     {0xd0000, 0x1}
 };
-
+/* P1 message block parameter for training firmware */
+static struct dram_cfg_param ddr_fsp1_cfg[] = {
+    {0xd0000, 0x0},
+    {0x54002, 0x1},
+    {0x54003, 0x3a4},
+    {0x54004, 0x4},
+    {0x54006, 0x15},
+    {0x54008, 0x121f},
+    {0x54009, 0xc8},
+    {0x5400b, 0x4},
+    {0x5400d, 0x100},
+    {0x5400f, 0x100},
+    {0x54012, 0x110},
+    {0x54019, 0x994},
+    {0x5401a, 0x32},
+    {0x5401b, 0x1146},
+    {0x5401c, 0x1108},
+    {0x5401e, 0x4},
+    {0x5401f, 0x994},
+    {0x54020, 0x32},
+    {0x54021, 0x1146},
+    {0x54022, 0x1108},
+    {0x54024, 0x4},
+    {0x54032, 0x9400},
+    {0x54033, 0x3209},
+    {0x54034, 0x4600},
+    {0x54035, 0x811},
+    {0x54036, 0x11},
+    {0x54037, 0x400},
+    {0x54038, 0x9400},
+    {0x54039, 0x3209},
+    {0x5403a, 0x4600},
+    {0x5403b, 0x811},
+    {0x5403c, 0x11},
+    {0x5403d, 0x400},
+    {0xd0000, 0x1}
+};
 /* P2 message block parameter for training firmware */
-struct dram_cfg_param ddr_fsp2_cfg[] = {
+static struct dram_cfg_param ddr_fsp2_cfg[] = {
     {0xd0000, 0x0},
     {0x54002, 0x102},
     {0x54003, 0x270},
@@ -1348,10 +1347,11 @@ struct dram_cfg_param ddr_fsp2_cfg[] = {
     {0xd0000, 0x1}
 };
 
+
 /* P0 2D message block parameter for training firmware */
-struct dram_cfg_param ddr_fsp0_2d_cfg[] = {
+static struct dram_cfg_param ddr_fsp0_2d_cfg[] = {
     {0xd0000, 0x0},
-    {0x54003, 0xe94},
+    {0x54003, 0x74a},
     {0x54004, 0x4},
     {0x54006, 0x15},
     {0x54008, 0x61},
@@ -1361,24 +1361,24 @@ struct dram_cfg_param ddr_fsp0_2d_cfg[] = {
     {0x5400f, 0x100},
     {0x54010, 0x2080},
     {0x54012, 0x110},
-    {0x54019, 0x36e4},
+    {0x54019, 0x1bb4},
     {0x5401a, 0x32},
     {0x5401b, 0x1146},
     {0x5401c, 0x1108},
     {0x5401e, 0x4},
-    {0x5401f, 0x36e4},
+    {0x5401f, 0x1bb4},
     {0x54020, 0x32},
     {0x54021, 0x1146},
     {0x54022, 0x1108},
     {0x54024, 0x4},
-    {0x54032, 0xe400},
-    {0x54033, 0x3236},
+    {0x54032, 0xb400},
+    {0x54033, 0x321b},
     {0x54034, 0x4600},
     {0x54035, 0x811},
     {0x54036, 0x11},
     {0x54037, 0x400},
-    {0x54038, 0xe400},
-    {0x54039, 0x3236},
+    {0x54038, 0xb400},
+    {0x54039, 0x321b},
     {0x5403a, 0x4600},
     {0x5403b, 0x811},
     {0x5403c, 0x11},
@@ -1387,7 +1387,7 @@ struct dram_cfg_param ddr_fsp0_2d_cfg[] = {
 };
 
 /* DRAM PHY init engine image */
-struct dram_cfg_param ddr_phy_pie[] = {
+static struct dram_cfg_param ddr_phy_pie[] = {
     {0xd0000, 0x0},
     {0x90000, 0x10},
     {0x90001, 0x400},
@@ -1871,14 +1871,14 @@ struct dram_cfg_param ddr_phy_pie[] = {
     {0x400d7, 0x20b},
     {0x2003a, 0x2},
     {0x200be, 0x3},
-    {0x2000b, 0x41a},
-    {0x2000c, 0xe9},
-    {0x2000d, 0x91c},
+    {0x2000b, 0x20d},
+    {0x2000c, 0x74},
+    {0x2000d, 0x48e},
     {0x2000e, 0x2c},
-    {0x12000b, 0x20d},
-    {0x12000c, 0x74},
-    {0x12000d, 0x48e},
-    {0x12000e, 0x2c},
+    {0x12000b, 0x107},
+    {0x12000c, 0x3a},
+    {0x12000d, 0x246},
+    {0x12000e, 0x21},
     {0x22000b, 0xb0},
     {0x22000c, 0x27},
     {0x22000d, 0x186},
@@ -1950,18 +1950,18 @@ struct dram_cfg_param ddr_phy_pie[] = {
 
 };
 
-struct dram_fsp_msg ddr_dram_fsp_msg[] = {
+static struct dram_fsp_msg ddr_dram_fsp_msg[] = {
     {
-        /* P0 3733mts 1D */
-        .drate = 3733,
+        /* P0 1866mts 1D */
+        .drate = 1866,
         .fw_type = FW_1D_IMAGE,
         .fsp_cfg = ddr_fsp0_cfg,
         .fsp_cfg_num = ARRAY_SIZE(ddr_fsp0_cfg),
 
     },
     {
-        /* P1 1866mts 1D */
-        .drate = 1866,
+        /* P1 933mts 1D */
+        .drate = 933,
         .fw_type = FW_1D_IMAGE,
         .fsp_cfg = ddr_fsp1_cfg,
         .fsp_cfg_num = ARRAY_SIZE(ddr_fsp1_cfg),
@@ -1977,8 +1977,8 @@ struct dram_fsp_msg ddr_dram_fsp_msg[] = {
     },
 
     {
-        /* P0 3733mts 2D */
-        .drate = 3733,
+        /* P0 1866mts 2D */
+        .drate = 1866,
         .fw_type = FW_2D_IMAGE,
         .fsp_cfg = ddr_fsp0_2d_cfg,
         .fsp_cfg_num = ARRAY_SIZE(ddr_fsp0_2d_cfg),
@@ -1987,7 +1987,7 @@ struct dram_fsp_msg ddr_dram_fsp_msg[] = {
 };
 
 /* ddr timing config params */
-struct dram_timing_info dram_timing = {
+struct dram_timing_info dram_timing_1866mts = {
     .ddrc_cfg = ddr_ddrc_cfg,
     .ddrc_cfg_num = ARRAY_SIZE(ddr_ddrc_cfg),
     .ddrphy_cfg = ddr_ddrphy_cfg,
@@ -1998,7 +1998,7 @@ struct dram_timing_info dram_timing = {
     .ddrphy_trained_csr_num = ARRAY_SIZE(ddr_ddrphy_trained_csr),
     .ddrphy_pie = ddr_phy_pie,
     .ddrphy_pie_num = ARRAY_SIZE(ddr_phy_pie),
-    .fsp_table = { 3733, 1866, 625, },
+    .fsp_table = { 1866, 933, 625, },
     .fsp_cfg = ddr_dram_fsp_cfg,
     .fsp_cfg_num = ARRAY_SIZE(ddr_dram_fsp_cfg),
 };

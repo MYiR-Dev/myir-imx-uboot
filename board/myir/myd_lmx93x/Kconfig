@@ -1,4 +1,4 @@
-if TARGET_MYD_LMX93_11X11 || TARGET_IMX93_14X14_EVK
+if TARGET_MYD_LMX93_11X11_1G || TARGET_MYD_LMX93_11X11_2G || TARGET_IMX93_14X14_EVK || TARGET_IMX91P_11X11_EVK
 
 config SYS_BOARD
 	default "myd_lmx93x"
@@ -9,18 +9,36 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "myd_lmx93x"
 
-config IMX93_EVK_LPDDR4X_1G
+choice
+	prompt "Select DDR Type"
+	default IMX93_EVK_LPDDR4X_1G if TARGET_MYD_LMX93_11X11_1G || TARGET_IMX93_14X14_EVK
+	default IMX93_EVK_LPDDR4X_2G if TARGET_MYD_LMX93_11X11_2G || TARGET_IMX93_14X14_EVK
+	default IMX93_EVK_LPDDR4_1G if TARGET_IMX91P_11X11_EVK
+
+config IMX93_EVK_LPDDR4X_2G
 	bool "Using LPDDR4X Timing and PMIC voltage"
-	default n
 	select IMX9_LPDDR4X
 	help
 	  Select the LPDDR4X timing and 0.6V VDDQ
 
-config IMX93_EVK_LPDDR4X_2G
-	bool "Using LPDDR4X Timing and PMIC voltage"
-	default n
+config IMX93_EVK_LPDDR4_2G
+	bool "Using LPDDR4 Timing and PMIC voltage"
 	select IMX9_LPDDR4X
 	help
-	  Select the LPDDR4X timing and 0.6V VDDQ
+	  Select the LPDDR4 timing and 1.1V VDDQ
+
+config IMX93_EVK_LPDDR4X_1G
+        bool "Using LPDDR4X Timing and PMIC voltage"
+        select IMX9_LPDDR4X
+        help
+          Select the LPDDR4X timing and 0.6V VDDQ
+
+config IMX93_EVK_LPDDR4_1G
+        bool "Using LPDDR4 Timing and PMIC voltage"
+        select IMX9_LPDDR4X
+        help
+          Select the LPDDR4 timing and 1.1V VDDQ
+
+endchoice
 
 endif
