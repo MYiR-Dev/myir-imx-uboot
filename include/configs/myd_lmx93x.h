@@ -71,6 +71,9 @@
 	"mmcdev=" __stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
 	"mmcpart=1\0" \
 	"mmcroot=/dev/mmcblk1p2 rootwait rw\0" \
+	"boot_limit=3\0" \
+        "mmcbootpart=2\0" \
+        "mmcbootpart_back=3\0" \
 	"mmcautodetect=yes\0" \
 	"mmcargs=setenv bootargs ${jh_clk} console=${console} root=${mmcroot}\0 " \
 	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
@@ -141,6 +144,14 @@
 				   "fi; " \
 			    "else " \
 				   "if run loadimage; then " \
+       		                            "if test ${boot_limit} -gt 0 ;then "\
+                	                            "setexpr boot_limit   ${boot_limit} - 1 ;"\
+                        	        "setenv boot_limit ${boot_limit} ;"\
+                              		"saveenv ;"\
+                              		"setenv mmcroot /dev/mmcblk${mmcdev}p${mmcbootpart} rootwait rw;" \
+                       		    "else " \
+                                                	"setenv mmcroot /dev/mmcblk${mmcdev}p${mmcbootpart_back} rootwait rw;" \
+                                  	   "fi;" \
 					   "run mmcboot; " \
 				   "else run netboot; " \
 				   "fi; " \
