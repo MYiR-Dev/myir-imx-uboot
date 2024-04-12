@@ -5,6 +5,7 @@
 #
 
 obj-y += myir-lmx93x.o
+obj-y += i2c_eeprom_myir.o
 
 ifdef CONFIG_SPL_BUILD
 obj-y += spl.o
