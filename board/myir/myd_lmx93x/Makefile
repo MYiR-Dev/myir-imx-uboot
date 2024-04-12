@@ -4,7 +4,7 @@
 # SPDX-License-Identifier:      GPL-2.0+
 #
 
-obj-y += imx93_evk.o
+obj-y += myir-lmx93x.o
 
 ifdef CONFIG_SPL_BUILD
 obj-y += spl.o
