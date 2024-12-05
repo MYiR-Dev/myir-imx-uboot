@@ -277,7 +277,25 @@ struct gpio_desc ext_pwren_desc, exp_sel_desc;
 static void board_gpio_init(void)
 {
 	struct gpio_desc desc;
-	int ret;
+	struct gpio_desc desc_eth0;
+        int ret;
+
+        /* Reset ETH0  PHY */
+        ret = dm_gpio_lookup_name("GPIO3_17", &desc_eth0);
+        if (ret)
+                return;
+
+        ret = dm_gpio_request(&desc_eth0, "eth0_rst");
+        if (ret)
+                return;
+        dm_gpio_set_dir_flags(&desc_eth0, GPIOD_IS_OUT);
+        dm_gpio_set_value(&desc_eth0, 0);
+
+        udelay(10000);
+        dm_gpio_set_value(&desc_eth0, 1);
+
+
+	
 
 	/* Enable EXT1_PWREN for PCIE_3.3V */
 	ret = dm_gpio_lookup_name("gpio@22_13", &desc);
