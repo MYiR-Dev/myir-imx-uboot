@@ -2265,6 +2265,8 @@ source "arch/arm/mach-imx/imx8ulp/Kconfig"
 
 source "arch/arm/mach-imx/imx9/Kconfig"
 
+source "arch/arm/mach-myir/imx9/Kconfig"
+
 source "arch/arm/mach-imx/imxrt/Kconfig"
 
 source "arch/arm/mach-imx/mxs/Kconfig"
