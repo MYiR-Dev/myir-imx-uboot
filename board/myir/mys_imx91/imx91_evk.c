@@ -281,6 +281,7 @@ static void board_gpio_init(void)
 	int ret;
 
 	/* Reset ETH0  PHY */
+	printk("myir eth0 reset\n");
         ret = dm_gpio_lookup_name("GPIO3_17", &desc_eth0);
         if (ret)
                 return;

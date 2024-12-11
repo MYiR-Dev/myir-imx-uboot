@@ -281,6 +281,7 @@ static void board_gpio_init(void)
         int ret;
 
         /* Reset ETH0  PHY */
+	printk("nxp eth0 reset\n");
         ret = dm_gpio_lookup_name("GPIO3_17", &desc_eth0);
         if (ret)
                 return;
@@ -289,10 +290,10 @@ static void board_gpio_init(void)
         if (ret)
                 return;
         dm_gpio_set_dir_flags(&desc_eth0, GPIOD_IS_OUT);
-        dm_gpio_set_value(&desc_eth0, 0);
+        dm_gpio_set_value(&desc_eth0, 1);
 
         udelay(10000);
-        dm_gpio_set_value(&desc_eth0, 1);
+        dm_gpio_set_value(&desc_eth0, 0);
 
 
 	
