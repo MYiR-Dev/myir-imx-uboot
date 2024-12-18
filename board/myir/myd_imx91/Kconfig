@@ -1,0 +1,19 @@
+if TARGET_MYD_IMX91_11X11
+
+config SYS_BOARD
+	default "myd_imx91"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "myd_imx91"
+
+config IMX91_EVK_LPDDR4
+	bool "Using LPDDR4 Timing and PMIC voltage"
+	default y
+	select IMX9_LPDDR4X
+	help
+	  Select the LPDDR4 timing and 1.1V VDDQ
+
+endif
