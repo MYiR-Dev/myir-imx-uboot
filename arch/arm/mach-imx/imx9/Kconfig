@@ -88,6 +88,7 @@ endchoice
 
 source "board/freescale/imx91_evk/Kconfig"
 source "board/myir/mys_imx91/Kconfig"
+source "board/myir/myd_imx91/Kconfig"
 source "board/freescale/imx91_qsb/Kconfig"
 source "board/freescale/imx93_evk/Kconfig"
 source "board/phytec/phycore_imx93/Kconfig"

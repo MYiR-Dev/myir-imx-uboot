@@ -38,7 +38,13 @@ config TARGET_IMX91_11X11_EVK
 	bool "imx91_11x11_evk"
 	select OF_BOARD_FIXUP
 	select IMX91
+
 config TARGET_MYS_IMX91_11X11
+        bool "imx91_11x11_evk"
+        select OF_BOARD_FIXUP
+        select IMX91
+
+config TARGET_MYD_IMX91_11X11
         bool "imx91_11x11_evk"
         select OF_BOARD_FIXUP
         select IMX91
@@ -88,6 +94,7 @@ endchoice
 
 source "board/freescale/imx91_evk/Kconfig"
 source "board/myir/mys_imx91/Kconfig"
+source "board/myir/myd_imx91/Kconfig"
 source "board/freescale/imx91_qsb/Kconfig"
 source "board/freescale/imx93_evk/Kconfig"
 source "board/phytec/phycore_imx93/Kconfig"
