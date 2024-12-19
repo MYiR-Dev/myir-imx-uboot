@@ -164,7 +164,7 @@
 
 #define CFG_SYS_SDRAM_BASE           0x80000000
 #define PHYS_SDRAM                      0x80000000
-#define PHYS_SDRAM_SIZE                 0x20000000 /* 512 DDR */
+#define PHYS_SDRAM_SIZE                 0x40000000 /* 1G DDR */
 
 /* Using ULP WDOG for reset */
 #define WDOG_BASE_ADDR          WDG3_BASE_ADDR
