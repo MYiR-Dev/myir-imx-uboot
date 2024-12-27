@@ -4,7 +4,7 @@
 # SPDX-License-Identifier:      GPL-2.0+
 #
 
-obj-y += imx91_evk.o
+obj-y += mys-imx91.o
 
 ifdef CONFIG_SPL_BUILD
 obj-y += spl.o
