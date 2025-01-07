@@ -69,8 +69,8 @@
 #ifdef CONFIG_MTD_SPI_NAND
 #define CFG_EXTRA_ENV_SETTINGS		\
 	CFG_MFG_ENV_SETTINGS \
-	"bootargs=console=ttyLP0,115200 ubi.mtd=nandrootfs "  \
-		"root=ubi0:nandrootfs rootfstype=ubifs "		     \
+	"bootargs=console=ttyLP0,115200 ubi.mtd=rootfs "  \
+		"root=ubi0:rootfs rootfstype=ubifs "		     \
 		MFG_NAND_PARTITION \
 		"\0"\
 	"console=ttyLP0,115200 earlycon\0" \
