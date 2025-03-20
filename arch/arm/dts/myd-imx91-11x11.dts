@@ -19,6 +19,19 @@
 	chosen {
 		stdout-path = &lpuart1;
 	};
+	
+	leds {
+                 compatible = "gpio-leds";
+ 
+                 led-sys {
+                         label = "91x:led2";
+                         pinctrl-names = "default";
+                         pinctrl-1 = <&pinctrl_sysled>;
+                         gpios = <&gpio3 21 GPIO_ACTIVE_LOW>;
+                         linux,default-trigger = "none";
+                        default-state = "on";
+                 };
+         };
 
 	reserved-memory {
 		#address-cells = <2>;
