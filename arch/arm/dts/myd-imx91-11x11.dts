@@ -19,17 +19,17 @@
 	chosen {
 		stdout-path = &lpuart1;
 	};
-	
-	leds {
-                 compatible = "gpio-leds";
- 
-                 led-sys {
-                         label = "91x-led";
-                         gpios = <&gpio3 21 GPIO_ACTIVE_LOW>;
-                         linux,default-trigger = "none";
-                        default-state = "on";
-                 };
-         };
+
+        leds {
+                    compatible = "gpio-leds";
+    
+                    led-sys {
+                            label = "91x-led";
+                            gpios = <&gpio3 21 GPIO_ACTIVE_LOW>;
+                            linux,default-trigger = "none";
+                           default-state = "on";
+                    };
+        };
 
 	reserved-memory {
 		#address-cells = <2>;
@@ -39,8 +39,8 @@
 		linux,cma {
 			compatible = "shared-dma-pool";
 			reusable;
-			alloc-ranges = <0 0x80000000 0 0x20000000>;
-			size = <0 0x2000000>;
+			alloc-ranges = <0 0x80000000 0 0x40000000>;
+			size = <0 0x10000000>;
 			linux,cma-default;
 		};
 	};
@@ -116,7 +116,7 @@
 		clock-frequency = <5000000>;
 
 		ethphy1: ethernet-phy@1 {
-			reg = <1>;
+			reg = <4>;
 			eee-broken-1000t;
 		};
 	};
@@ -136,7 +136,7 @@
 		clock-frequency = <5000000>;
 
 		ethphy2: ethernet-phy@2 {
-			reg = <2>;
+			reg = <6>;
 			eee-broken-1000t;
 		};
 	};
@@ -279,7 +279,7 @@
 		reg = <0x50>;
 		interrupt-parent = <&gpio3>;
 		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
-		status = "okay";
+		status = "disabled";
 
 		port {
 			typec1_dr_sw: endpoint {
@@ -306,7 +306,7 @@
 		reg = <0x51>;
 		interrupt-parent = <&gpio3>;
 		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
-		status = "okay";
+		status = "disabled";
 
 		port {
 			typec2_dr_sw: endpoint {
@@ -412,7 +412,7 @@
 		reg = <0>;
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible = "jedec,spi-nor";
+		compatible = "spi-nand";
 		spi-max-frequency = <80000000>;
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
@@ -560,7 +560,7 @@
 			MX91_PAD_SD1_DATA4__USDHC1_DATA4	0x40001382
 			MX91_PAD_SD1_DATA5__USDHC1_DATA5	0x40001382
 			MX91_PAD_SD1_DATA6__USDHC1_DATA6	0x40001382
-		
+			MX91_PAD_SD1_DATA7__USDHC1_DATA7	0x40001382
 			MX91_PAD_SD1_STROBE__USDHC1_STROBE	0x1582
 		>;
 	};
@@ -577,7 +577,7 @@
 			MX91_PAD_SD1_DATA4__USDHC1_DATA4	0x4000138e
 			MX91_PAD_SD1_DATA5__USDHC1_DATA5	0x4000138e
 			MX91_PAD_SD1_DATA6__USDHC1_DATA6	0x4000138e
-
+			MX91_PAD_SD1_DATA7__USDHC1_DATA7	0x4000138e
 			MX91_PAD_SD1_STROBE__USDHC1_STROBE	0x158e
 		>;
 	};
@@ -594,7 +594,7 @@
 			MX91_PAD_SD1_DATA4__USDHC1_DATA4	0x400013fe
 			MX91_PAD_SD1_DATA5__USDHC1_DATA5	0x400013fe
 			MX91_PAD_SD1_DATA6__USDHC1_DATA6	0x400013fe
-
+			MX91_PAD_SD1_DATA7__USDHC1_DATA7	0x400013fe
 			MX91_PAD_SD1_STROBE__USDHC1_STROBE	0x15fe
 		>;
 	};
