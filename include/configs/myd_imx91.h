@@ -11,6 +11,8 @@
 #include <asm/arch/imx-regs.h>
 #include "imx_env.h"
 
+#define CONFIG_SYS_MMC_ENV_PART 0
+
 #define CFG_SYS_UBOOT_BASE	\
 	(QSPI0_AMBA_BASE + CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)
 
