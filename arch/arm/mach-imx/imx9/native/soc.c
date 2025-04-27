@@ -178,7 +178,7 @@ u32 get_cpu_temp_grade(int *minc, int *maxc)
 			*maxc = 125;
 		} else if (val == TEMP_INDUSTRIAL) {
 			*minc = -40;
-			*maxc = 105;
+			*maxc = 120;
 		} else if (val == TEMP_EXTCOMMERCIAL) {
 			if (is_imx93()) {
 				/* imx93 only has extended industrial*/
