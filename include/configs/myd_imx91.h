@@ -82,7 +82,7 @@
 	"mmcroot=/dev/mmcblk"__stringify(CONFIG_SYS_MMC_ENV_DEV)"p2 rootwait rw\0" \
 	"mmcautodetect=yes\0" \
 	"loglevel=3\0" \
-	"mmcargs=setenv bootargs ${jh_clk} ${mcore_clk} console=${console} root=${mmcroot} loglevel={loglevel}\0 " \
+	"mmcargs=setenv bootargs ${jh_clk} ${mcore_clk} console=${console} root=${mmcroot} loglevel=${loglevel}\0 " \
 	"loadbootscript=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \

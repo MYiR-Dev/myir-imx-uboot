@@ -21,14 +21,15 @@
 	};
 
         leds {
-                    compatible = "gpio-leds";
-    
-                    led-sys {
-                            label = "91x-led";
-                            gpios = <&gpio3 21 GPIO_ACTIVE_LOW>;
-                            linux,default-trigger = "none";
-                           default-state = "on";
-                    };
+                compatible = "gpio-leds";
+                pinctrl-names = "default";
+                pinctrl-0 = <&pinctrl_gpio_led>;
+
+                user {
+                        label = "sys";
+                        gpios = <&gpio3 21 GPIO_ACTIVE_LOW>;
+                        default-state = "on"; /* LED */
+                };
         };
 
 	reserved-memory {
@@ -428,6 +429,11 @@
 };
 
 &iomuxc {
+	pinctrl_gpio_led: gpioledgrp {
+                fsl,pins = <
+                        MX91_PAD_SD3_CMD__GPIO3_IO21      			0x31e
+                >;
+        };	
 	pinctrl_eqos: eqosgrp {
 		fsl,pins = <
 			MX91_PAD_ENET1_MDC__ENET1_MDC			0x57e
