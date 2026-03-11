@@ -1,0 +1,440 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright 2022 NXP
+ */
+
+#include "imx93-u-boot.dtsi"
+
+/ {
+	wdt-reboot {
+		compatible = "wdt-reboot";
+		wdt = <&wdog3>;
+		bootph-pre-ram;
+		bootph-some-ram;
+	};
+
+	aliases {
+		usb_gadget0 = &usbg1;
+		usb_gadget1 = &usbg2;
+		rtc0 = &pcf2131;
+	};
+
+	chosen {
+		bootargs = "console=ttyLP0,115200";
+	};
+
+	usbg1: usbg1 {
+		compatible = "fsl,imx27-usb-gadget";
+		dr_mode = "peripheral";
+		chipidea,usb = <&usbotg1>;
+		status = "okay";
+	};
+
+	usbg2: usbg2 {
+		compatible = "fsl,imx27-usb-gadget";
+		dr_mode = "peripheral";
+		chipidea,usb = <&usbotg2>;
+		status = "okay";
+	};
+
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
+	};
+
+	dsi_host: dsi-host {
+		compatible = "synopsys,dw-mipi-dsi";
+		status = "okay";
+	};
+
+	rm67199_panel {
+		compatible = "raydium,rm67199";
+		reset-gpio = <&adp5585 6 GPIO_ACTIVE_LOW>;
+		dsi-lanes = <4>;
+		video-mode = <2>;	/* 0: burst mode
+					 * 1: non-burst mode with sync event
+					 * 2: non-burst mode with sync pulse
+					 */
+		width-mm = <68>;
+		height-mm = <121>;
+		status = "okay";
+
+		port {
+			panel_in: endpoint {
+				remote-endpoint = <&dsi_out>;
+			};
+		};
+	};
+};
+
+&A55_0 {
+	clocks = <&clk IMX93_CLK_A55_SEL>;
+};
+
+&A55_1 {
+	clocks = <&clk IMX93_CLK_A55_SEL>;
+};
+
+&{/soc@0} {
+	bootph-all;
+	bootph-pre-ram;
+};
+
+&aips1 {
+	bootph-pre-ram;
+	bootph-all;
+};
+
+&aips2 {
+	bootph-pre-ram;
+	bootph-some-ram;
+};
+
+&aips3 {
+	bootph-pre-ram;
+	bootph-some-ram;
+};
+
+&iomuxc {
+	bootph-pre-ram;
+	bootph-some-ram;
+
+	pinctrl_flexspi: flexspigrp {
+		fsl,pins = <
+			MX93_PAD_SD3_CMD__FLEXSPI1_A_SS0_B      0x3fe
+			MX93_PAD_SD3_CLK__FLEXSPI1_A_SCLK       0x3fe
+			MX93_PAD_SD3_DATA0__FLEXSPI1_A_DATA00   0x3fe
+			MX93_PAD_SD3_DATA1__FLEXSPI1_A_DATA01   0x3fe
+			MX93_PAD_SD3_DATA2__FLEXSPI1_A_DATA02   0x3fe
+			MX93_PAD_SD3_DATA3__FLEXSPI1_A_DATA03   0x3fe
+		>;
+	};
+
+	pinctrl_lpi2c3_gpio: lpi2c3gpiogrp {
+		fsl,pins = <
+			MX93_PAD_GPIO_IO28__GPIO2_IO28			0x31e
+			MX93_PAD_GPIO_IO29__GPIO2_IO29			0x31e
+		>;
+	};
+};
+
+&reg_usdhc2_vmmc {
+	off-on-delay-us = <20000>;
+	bootph-pre-ram;
+};
+
+&pinctrl_reg_usdhc2_vmmc {
+	bootph-pre-ram;
+};
+
+&pinctrl_uart1 {
+	bootph-pre-ram;
+	bootph-some-ram;
+};
+
+&pinctrl_usdhc1 {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2_gpio {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2 {
+	bootph-pre-ram;
+};
+
+&gpio1 {
+	compatible = "fsl,imx93-gpio", "fsl,imx7ulp-gpio";
+	reg = <0x47400080 0x1000>, <0x47400040 0x40>;
+	bootph-pre-ram;
+	bootph-some-ram;
+};
+
+&gpio2 {
+	compatible = "fsl,imx93-gpio", "fsl,imx7ulp-gpio";
+	reg = <0x43810080 0x1000>, <0x43810040 0x40>;
+	bootph-pre-ram;
+	bootph-some-ram;
+};
+
+&gpio3 {
+	compatible = "fsl,imx93-gpio", "fsl,imx7ulp-gpio";
+	reg = <0x43820080 0x1000>, <0x43820040 0x40>;
+	bootph-pre-ram;
+	bootph-some-ram;
+};
+
+&gpio4 {
+	compatible = "fsl,imx93-gpio", "fsl,imx7ulp-gpio";
+	reg = <0x43830080 0x1000>, <0x43830040 0x40>;
+	bootph-pre-ram;
+	bootph-some-ram;
+};
+
+&lpuart1 {
+	bootph-pre-ram;
+	bootph-some-ram;
+};
+
+&usdhc1 {
+	bootph-pre-ram;
+};
+
+&usdhc2 {
+	bootph-pre-ram;
+	fsl,signal-voltage-switch-extra-delay-ms = <8>;
+};
+
+&lpi2c1 {
+	bootph-pre-ram;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <400000>;
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&pinctrl_lpi2c1>;
+	pinctrl-1 = <&pinctrl_lpi2c1>;
+	status = "okay";
+
+	adv7535: hdmi@3d {
+		compatible = "adi,adv7535";
+		reg = <0x3d>;
+		adi,addr-cec = <0x3c>;
+		adi,dsi-lanes = <4>;
+		status = "okay";
+
+		port {
+			adv7535_to_dsi: endpoint {
+				remote-endpoint = <&dsi_to_adv7535>;
+			};
+		};
+	};
+};
+
+&lpi2c2 {
+	bootph-pre-ram;
+
+#if CONFIG_IS_ENABLED(DM_PMIC_PF0900)
+	/delete-node/ pmic@25;
+	pmic1: pmic@8 {
+		compatible = "nxp,pf0900";
+		reg = <0x08>;
+		interrupt-parent = <&pcal6524>;
+		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
+		status = "okay";
+
+		regulators {
+			vaon: VAON {
+				regulator-name = "VAON";
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			sw1: SW1 {
+				regulator-name = "SW1";
+				regulator-min-microvolt = <500000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-ramp-delay = <1950>;
+			};
+
+			sw2: SW2 {
+				regulator-name = "SW2";
+				regulator-min-microvolt = <300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-ramp-delay = <1950>;
+			};
+
+			sw3: SW3 {
+				regulator-name = "SW3";
+				regulator-min-microvolt = <300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-ramp-delay = <1950>;
+			};
+
+			sw4: SW4{
+				regulator-name = "SW4";
+				regulator-min-microvolt = <300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-ramp-delay = <1950>;
+			};
+
+			sw5: SW5{
+				regulator-name = "SW5";
+				regulator-min-microvolt = <300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+				regulator-ramp-delay = <1950>;
+			};
+
+			ldo1: LDO1 {
+				regulator-name = "LDO1";
+				regulator-min-microvolt = <750000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			ldo2: LDO2 {
+				regulator-name = "LDO2";
+				regulator-min-microvolt = <650000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			ldo3: LDO3 {
+				regulator-name = "LDO3";
+				regulator-min-microvolt = <650000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+		};
+	};
+
+    adp5585: io-expander@34 {
+		vdd-supply = <&sw2>;
+	};
+#endif
+};
+
+&lpi2c3 {
+	bootph-pre-ram;
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_lpi2c3>;
+	pinctrl-1 = <&pinctrl_lpi2c3_gpio>;
+	gpios = <&gpio2 28 GPIO_ACTIVE_LOW>,
+		<&gpio2 29 GPIO_ACTIVE_LOW>;
+};
+
+#if CONFIG_IS_ENABLED(DM_PMIC_PF0900)
+&{/soc@0/bus@44000000/i2c@44350000/pmic@8} {
+	bootph-pre-ram;
+};
+
+&{/soc@0/bus@44000000/i2c@44350000/pmic@8/regulators} {
+	bootph-pre-ram;
+};
+#else
+&{/soc@0/bus@44000000/i2c@44350000/pmic@25} {
+	bootph-pre-ram;
+};
+
+&{/soc@0/bus@44000000/i2c@44350000/pmic@25/regulators} {
+	bootph-pre-ram;
+};
+#endif
+
+&pinctrl_lpi2c1 {
+	bootph-pre-ram;
+};
+
+&pinctrl_lpi2c2 {
+	bootph-pre-ram;
+};
+
+&pinctrl_lpi2c3 {
+	bootph-pre-ram;
+};
+
+&usbotg1 {
+	status = "okay";
+	extcon = <&ptn5110>;
+};
+
+&usbotg2 {
+	status = "okay";
+	extcon = <&ptn5110_2>;
+};
+
+&s4muap {
+	bootph-pre-ram;
+	bootph-some-ram;
+	status = "okay";
+};
+
+&clk {
+	bootph-all;
+	bootph-pre-ram;
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-rates;
+	/delete-property/ assigned-clock-parents;
+};
+
+&osc_32k {
+	bootph-all;
+	bootph-pre-ram;
+};
+
+&osc_24m {
+	bootph-all;
+	bootph-pre-ram;
+};
+
+&clk_ext1 {
+	bootph-all;
+	bootph-pre-ram;
+};
+
+&flexspi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_flexspi>;
+	assigned-clock-rates = <80000000>;
+	status = "okay";
+
+	flash0: flash@0 {
+		reg = <0>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		spi-max-frequency = <80000000>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
+	};
+};
+
+&wdog3 {
+	status = "okay";
+};
+
+&lcdif {
+	assigned-clocks = <&clk IMX93_CLK_MEDIA_AXI>, <&clk IMX93_CLK_MEDIA_APB>;
+	assigned-clock-parents = <&clk IMX93_CLK_SYS_PLL_PFD1>, <&clk IMX93_CLK_SYS_PLL_PFD1_DIV2>;
+	assigned-clock-rates = <400000000>, <133333334>;
+	status = "okay";
+};
+
+&dphy {
+	status = "okay";
+};
+
+&dsi {
+	status = "okay";
+
+	ports {
+		port@1 {
+			dsi_to_adv7535: endpoint {
+				remote-endpoint = <&adv7535_to_dsi>;
+			};
+		};
+
+		port@2 {
+			dsi_out: endpoint {
+				remote-endpoint = <&panel_in>;
+			};
+		};
+	};
+};
