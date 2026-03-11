@@ -1,25 +1,25 @@
-if TARGET_MYD_LMX93X_11X11 
+if TARGET_MYD_LMX9X_11X11 
 
 config SYS_BOARD
-	default "myd_lmx93x"
+	default "myd_lmx9x"
 
 config SYS_VENDOR
 	default "myir"
 
 config SYS_CONFIG_NAME
-	default "myd_lmx93x"
+	default "myd_lmx9x"
 
 
 
 choice
 	prompt "DDR Size Configuration"
-	default MYD_IMX93_LPDDR4X_1G
+	default MYD_LMX9X_LPDDR4X_1G
 
-config MYD_IMX93_LPDDR4X_1G
+config MYD_LMX9X_LPDDR4X_1G
 	bool "LPDDR4 1GB"
 	select IMX9_LPDDR4X
 
-config MYD_IMX93_LPDDR4X_2G
+config MYD_LMX9X_LPDDR4X_2G
 	bool "LPDDR4 2GB"
 	select IMX9_LPDDR4X
 

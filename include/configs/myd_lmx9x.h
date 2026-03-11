@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0+ */
 /*
- * Copyright 2022 NXP
+ * Copyright 2026 MYIR
  */
 
-#ifndef __MYD_LMX93X_H
-#define __MYD_LMX93X_H
+#ifndef __MYD_LMX9X_H
+#define __MYD_LMX9X_H
 
 #include <linux/sizes.h>
 #include <linux/stringify.h>
