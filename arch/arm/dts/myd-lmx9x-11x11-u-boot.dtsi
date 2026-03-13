@@ -16,7 +16,7 @@
 	aliases {
 		usb_gadget0 = &usbg1;
 		usb_gadget1 = &usbg2;
-		rtc0 = &pcf2131;
+		
 	};
 
 	chosen {
@@ -49,24 +49,7 @@
 		status = "okay";
 	};
 
-	rm67199_panel {
-		compatible = "raydium,rm67199";
-		reset-gpio = <&adp5585 6 GPIO_ACTIVE_LOW>;
-		dsi-lanes = <4>;
-		video-mode = <2>;	/* 0: burst mode
-					 * 1: non-burst mode with sync event
-					 * 2: non-burst mode with sync pulse
-					 */
-		width-mm = <68>;
-		height-mm = <121>;
-		status = "okay";
 
-		port {
-			panel_in: endpoint {
-				remote-endpoint = <&dsi_out>;
-			};
-		};
-	};
 };
 
 &A55_0 {
@@ -198,19 +181,7 @@
 	pinctrl-1 = <&pinctrl_lpi2c1>;
 	status = "okay";
 
-	adv7535: hdmi@3d {
-		compatible = "adi,adv7535";
-		reg = <0x3d>;
-		adi,addr-cec = <0x3c>;
-		adi,dsi-lanes = <4>;
-		status = "okay";
 
-		port {
-			adv7535_to_dsi: endpoint {
-				remote-endpoint = <&dsi_to_adv7535>;
-			};
-		};
-	};
 };
 
 &lpi2c2 {
@@ -352,12 +323,12 @@
 
 &usbotg1 {
 	status = "okay";
-	extcon = <&ptn5110>;
+
 };
 
 &usbotg2 {
 	status = "okay";
-	extcon = <&ptn5110_2>;
+
 };
 
 &s4muap {
@@ -424,17 +395,5 @@
 &dsi {
 	status = "okay";
 
-	ports {
-		port@1 {
-			dsi_to_adv7535: endpoint {
-				remote-endpoint = <&adv7535_to_dsi>;
-			};
-		};
-
-		port@2 {
-			dsi_out: endpoint {
-				remote-endpoint = <&panel_in>;
-			};
-		};
-	};
+	
 };
