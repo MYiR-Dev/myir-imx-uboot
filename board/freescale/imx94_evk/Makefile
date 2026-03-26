@@ -1,0 +1,12 @@
+#
+# Copyright 2025 NXP
+#
+# SPDX-License-Identifier:      GPL-2.0+
+#
+
+obj-y += imx94_evk.o
+obj-$(CONFIG_IMX_CRRM) += crrm.o
+
+ifdef CONFIG_SPL_BUILD
+obj-y += spl.o
+endif

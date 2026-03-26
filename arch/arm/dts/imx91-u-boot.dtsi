@@ -1,0 +1,168 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2023 Mathieu Othacehe <m.othacehe@gmail.com>
+ */
+
+/ {
+	binman: binman {
+		multiple-images;
+	};
+
+	aliases {
+		ethernet0 = &fec;
+		ethernet1 = &eqos;
+		spi0 = &flexspi1;
+		usb0 = &usbotg1;
+		usb1 = &usbotg2;
+	};
+
+	display-subsystem {
+		compatible = "fsl,imx-display-subsystem";
+		ports = <&lcdif_disp>;
+	};
+};
+
+&A55_0 {
+	clocks = <&clk IMX93_CLK_A55_SEL>;
+};
+
+&media_blk_ctrl {
+	reg = <0x4ac10000 0x70>;
+	status = "okay";
+
+	parallel_disp_fmt: dpi {
+		compatible = "fsl,imx93-parallel-display-format";
+		power-domains = <&mediamix>;
+		status = "disabled";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+
+				dpi_to_lcdif: endpoint {
+					remote-endpoint = <&lcdif_to_dpi>;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				endpoint {
+				};
+			};
+		};
+	};
+};
+
+&{/soc@0} {
+	lcdif: lcd-controller@4ae30000 {
+		compatible = "fsl,imx93-lcdif";
+		reg = <0x4ae30000 0x10000>;
+		interrupts = <GIC_SPI 176 IRQ_TYPE_LEVEL_HIGH>;
+		fsl,gpr = <&media_blk_ctrl>;
+		clocks = <&clk IMX93_CLK_MEDIA_DISP_PIX>,
+			 <&clk IMX93_CLK_MEDIA_AXI>,
+			 <&clk IMX93_CLK_LCDIF_GATE>;
+		clock-names = "pix", "disp-axi", "disp-apb";
+		assigned-clocks = <&clk IMX93_CLK_VIDEO_PLL>,
+				  <&clk IMX93_CLK_MEDIA_DISP_PIX>,
+				  <&clk IMX93_CLK_MEDIA_AXI>,
+				  <&clk IMX93_CLK_MEDIA_APB>;
+		assigned-clock-parents = <&clk IMX93_CLK_24M>,
+					 <&clk IMX93_CLK_VIDEO_PLL>,
+					 <&clk IMX93_CLK_SYS_PLL_PFD0>,
+					 <&clk IMX93_CLK_SYS_PLL_PFD0_DIV2>;
+		power-domains = <&media_blk_ctrl IMX93_MEDIABLK_PD_LCDIF>;
+		status = "disabled";
+
+		lcdif_disp: port {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			lcdif_to_dpi: endpoint@2 {
+				reg = <2>;
+				remote-endpoint = <&dpi_to_lcdif>;
+			};
+		};
+	};
+};
+
+&binman {
+	u-boot-spl-ddr {
+		align = <4>;
+		align-size = <4>;
+		filename = "u-boot-spl-ddr.bin";
+		pad-byte = <0xff>;
+
+		u-boot-spl {
+			align-end = <4>;
+			filename = "u-boot-spl.bin";
+		};
+
+		ddr-1d-imem-fw {
+			filename = "lpddr4_imem_1d_v202201.bin";
+			align-end = <4>;
+			type = "blob-ext";
+		};
+
+		ddr-1d-dmem-fw {
+			filename = "lpddr4_dmem_1d_v202201.bin";
+			align-end = <4>;
+			type = "blob-ext";
+		};
+
+		ddr-2d-imem-fw {
+			filename = "lpddr4_imem_2d_v202201.bin";
+			align-end = <4>;
+			type = "blob-ext";
+		};
+
+		ddr-2d-dmem-fw {
+			filename = "lpddr4_dmem_2d_v202201.bin";
+			align-end = <4>;
+			type = "blob-ext";
+		};
+	};
+
+	spl {
+		filename = "spl.bin";
+
+		mkimage {
+			args = "-n spl/u-boot-spl.cfgout -T imx8image -e 0x204A0000";
+
+			blob {
+				filename = "u-boot-spl-ddr.bin";
+			};
+		};
+	};
+
+	u-boot-container {
+		filename = "u-boot-container.bin";
+
+		mkimage {
+			args = "-n u-boot-container.cfgout -T imx8image -e 0x0";
+
+			blob {
+				filename = "u-boot.bin";
+			};
+		};
+	};
+
+	imx-boot {
+		filename = "flash.bin";
+		pad-byte = <0x00>;
+
+		spl: blob-ext@1 {
+			filename = "spl.bin";
+			offset = <0x0>;
+			align-size = <0x400>;
+			align = <0x400>;
+		};
+
+		uboot: blob-ext@2 {
+			filename = "u-boot-container.bin";
+		};
+	};
+};

@@ -1,0 +1,20 @@
+if TARGET_MX6SABREAUTO || TARGET_MX6SABREAUTO_COMMON
+
+config SYS_BOARD
+	default "mx6sabreauto"
+
+config SYS_VENDOR
+	default "freescale"
+
+config SYS_CONFIG_NAME
+	default "mx6sabreauto"
+
+config TEXT_BASE
+    default 0x17800000
+
+config NOR
+	bool "Support for NOR flash"
+	help
+	  The i.MX SoC supports having a NOR flash connected to the WEIM.
+	  Need to set this for NOR_BOOT.
+endif

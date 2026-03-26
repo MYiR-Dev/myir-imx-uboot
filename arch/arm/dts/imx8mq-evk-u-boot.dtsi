@@ -1,0 +1,149 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+
+#include "imx8mq-u-boot.dtsi"
+
+/ {
+	chosen {
+		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30860000,115200";
+	};
+};
+
+&pinctrl_uart1 {
+	bootph-pre-ram;
+};
+
+&usdhc1 {
+	mmc-hs400-1_8v;
+};
+
+&usdhc2 {
+	sd-uhs-sdr104;
+	sd-uhs-ddr50;
+};
+
+&uart1 {
+	assigned-clocks = <&clk IMX8MQ_CLK_UART1>;
+	assigned-clock-parents = <&clk IMX8MQ_CLK_25M>;
+	bootph-pre-ram;
+};
+
+&ethphy0 {
+	reset-assert-us = <15000>;
+	reset-deassert-us = <100000>;
+
+	vddio0: vddio-regulator {
+		regulator-name = "VDDIO";
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+	};
+};
+
+&i2c1 {
+	pinctrl-names = "default", "gpio";
+	pinctrl-1 = <&pinctrl_i2c1_gpio>;
+	scl-gpios = <&gpio5 14 GPIO_ACTIVE_HIGH>;
+	sda-gpios = <&gpio5 15 GPIO_ACTIVE_HIGH>;
+};
+
+&i2c2 {
+	clock-frequency = <100000>;
+	pinctrl-names = "default", "gpio";
+	pinctrl-0 = <&pinctrl_i2c2>;
+	pinctrl-1 = <&pinctrl_i2c2_gpio>;
+	scl-gpios = <&gpio5 16 GPIO_ACTIVE_HIGH>;
+	sda-gpios = <&gpio5 17 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&usb3_phy0 {
+	status = "okay";
+};
+
+&usb_dwc3_0 {
+	dr_mode = "otg";
+	hnp-disable;
+	srp-disable;
+	adp-disable;
+	usb-role-switch;
+	snps,dis-u1-entry-quirk;
+	snps,dis-u2-entry-quirk;
+	status = "okay";
+};
+
+&dcss {
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
+
+	status = "okay";
+	port@0 {
+		dcss_out: endpoint {
+			remote-endpoint = <&hdmi_in>;
+		};
+	};
+};
+
+&hdmi {
+	compatible = "fsl,imx8mq-hdmi";
+	status = "okay";
+
+	display-timings {
+		native-mode = <&timing1>;
+
+		timing1: timing1 {
+			clock-frequency = <74250000>;
+			hactive = <1280>;
+			vactive = <720>;
+			hfront-porch = <110>;
+			hback-porch = <220>;
+			hsync-len = <40>;
+			vback-porch = <20>;
+			vfront-porch = <5>;
+			vsync-len = <5>;
+			hsync-active = <1>;
+			vsync-active = <1>;
+		};
+	};
+
+	port@0 {
+		hdmi_in: endpoint {
+			remote-endpoint = <&dcss_out>;
+		};
+	};
+};
+
+&iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog>;
+
+	pinctrl_hog: hoggrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_NAND_READY_B_GPIO3_IO16		0x19
+			MX8MQ_IOMUXC_NAND_WE_B_GPIO3_IO17		0x19
+			MX8MQ_IOMUXC_NAND_WP_B_GPIO3_IO18		0x19
+			MX8MQ_IOMUXC_GPIO1_IO08_GPIO1_IO8		0xd6
+			MX8MQ_IOMUXC_GPIO1_IO00_ANAMIX_REF_CLK_32K	0x16
+		>;
+	};
+
+	pinctrl_i2c2: i2c2grp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_I2C2_SCL_I2C2_SCL	0x40000067
+			MX8MQ_IOMUXC_I2C2_SDA_I2C2_SDA	0x40000067
+		>;
+	};
+
+	pinctrl_i2c1_gpio: i2c1gpiogrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_I2C1_SCL_GPIO5_IO14        		0x7f
+			MX8MQ_IOMUXC_I2C1_SDA_GPIO5_IO15        		0x7f
+		>;
+	};
+
+	pinctrl_i2c2_gpio: i2c2gpiogrp {
+		fsl,pins = <
+			MX8MQ_IOMUXC_I2C2_SCL_GPIO5_IO16        		0x7f
+			MX8MQ_IOMUXC_I2C2_SDA_GPIO5_IO17        		0x7f
+		>;
+	};
+};

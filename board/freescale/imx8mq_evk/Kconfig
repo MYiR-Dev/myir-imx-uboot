@@ -1,0 +1,21 @@
+if TARGET_IMX8MQ_EVK
+
+config SYS_BOARD
+	default "imx8mq_evk"
+
+config SYS_VENDOR
+	default "freescale"
+
+config SYS_CONFIG_NAME
+	default "imx8mq_evk"
+
+config IMX_CONFIG
+	default "arch/arm/mach-imx/imx8m/imximage.cfg"
+
+config IMX8MQ_4GB_DDR_TIMING
+	bool "Use DDR timing file for 4GB WEVK"
+	help
+	  Select to use DDR timing file for WEVK board
+	  which has 4GB LPDDR4.
+
+endif

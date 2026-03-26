@@ -1,0 +1,56 @@
+if TARGET_LX2160ARDB
+
+config SYS_BOARD
+	default "lx2160a"
+
+config SYS_VENDOR
+	default "freescale"
+
+config SYS_SOC
+	default "fsl-layerscape"
+
+config SYS_CONFIG_NAME
+	default "lx2160ardb"
+
+config QSFP_EEPROM
+        bool "Support for reading QSFP+ transceiver eeprom"
+        default y if PHY_CORTINA
+        help
+         This option enables the functionality for reading
+         QSFP+ cable eeprom. It can be used when PHYs are
+         requiring different initialization based on cable
+         type.
+
+endif
+
+if TARGET_LX2160AQDS
+
+config SYS_BOARD
+	default "lx2160a"
+
+config SYS_VENDOR
+	default "freescale"
+
+config SYS_SOC
+	default "fsl-layerscape"
+
+config SYS_CONFIG_NAME
+	default "lx2160aqds"
+
+endif
+
+if TARGET_LX2162AQDS
+
+config SYS_BOARD
+	default "lx2160a"
+
+config SYS_VENDOR
+	default "freescale"
+
+config SYS_SOC
+	default "fsl-layerscape"
+
+config SYS_CONFIG_NAME
+	default "lx2162aqds"
+
+endif

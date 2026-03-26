@@ -1,0 +1,23 @@
+if TARGET_MX6SXSABRESD
+
+config SYS_BOARD
+	default "mx6sxsabresd"
+
+config SYS_VENDOR
+	default "freescale"
+
+config SYS_CONFIG_NAME
+	default "mx6sxsabresd"
+
+config IMX_CONFIG
+	default "board/freescale/mx6sxsabresd/imximage.cfg"
+
+config MX6SXSABRESD_EMMC_REWORK
+	bool "Select for the board with eMMC rework"
+
+config SYS_AUXCORE_FASTUP
+	bool "Enable to fast boot up M core"
+
+config TEXT_BASE
+	default 0x87800000
+endif

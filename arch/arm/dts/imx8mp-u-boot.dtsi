@@ -1,0 +1,334 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2021 PHYTEC Messtechnik GmbH
+ * Author: Teresa Remmet <t.remmet@phytec.de>
+ */
+
+/ {
+	binman: binman {
+	};
+
+	aliases {
+		usb0 = &usb_dwc3_0;
+		usb1 = &usb_dwc3_1;
+		video0 = &lcdif1;
+	};
+
+#ifdef CONFIG_OPTEE
+	firmware {
+		optee {
+			compatible = "linaro,optee-tz";
+			method = "smc";
+		};
+	};
+#endif
+
+	imx8mp-cm7 {
+		compatible = "fsl,imx8mp-cm7";
+	};
+};
+
+#ifdef CONFIG_FSL_CAAM
+&crypto {
+	bootph-pre-ram;
+};
+#endif
+
+&soc {
+	bootph-all;
+	bootph-pre-ram;
+};
+
+&clk {
+	bootph-pre-ram;
+	bootph-all;
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
+};
+
+&osc_32k {
+	bootph-pre-ram;
+	bootph-all;
+};
+
+&osc_24m {
+	bootph-pre-ram;
+	bootph-all;
+};
+
+&aips1 {
+	bootph-pre-ram;
+	bootph-all;
+};
+
+&aips2 {
+	bootph-pre-ram;
+};
+
+&aips3 {
+	bootph-pre-ram;
+	spba-bus@30800000 {
+		bootph-pre-ram;
+	};
+};
+
+&iomuxc {
+	bootph-pre-ram;
+};
+
+&mipi_dsi {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	compatible = "fsl,imx8mp-mipi-dsim";
+	reg = <0x32e60000 0x10000>;
+	clocks = <&clk IMX8MP_CLK_MEDIA_APB_ROOT>,
+		 <&clk IMX8MP_CLK_MEDIA_MIPI_PHY1_REF>,
+		 <&clk IMX8MP_CLK_MEDIA_APB_ROOT>;
+	clock-names = "cfg", "pll-ref", "apb-root";
+	assigned-clocks = <&clk IMX8MP_CLK_MEDIA_MIPI_PHY1_REF>;
+	assigned-clock-parents = <&clk IMX8MP_CLK_24M>;
+	assigned-clock-rates = <12000000>;
+};
+
+&lcdif1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	compatible = "fsl,imx8mp-lcdif1";
+	clocks = <&clk IMX8MP_CLK_MEDIA_DISP1_PIX_ROOT>,
+		 <&clk IMX8MP_CLK_MEDIA_AXI_ROOT>,
+		 <&clk IMX8MP_CLK_MEDIA_APB_ROOT>;
+	clock-names = "pix", "disp-axi", "disp-apb";
+	assigned-clocks = <&clk IMX8MP_CLK_MEDIA_DISP1_PIX>,
+			  <&clk IMX8MP_CLK_MEDIA_AXI>,
+			  <&clk IMX8MP_CLK_MEDIA_APB>;
+	assigned-clock-parents = <&clk IMX8MP_VIDEO_PLL1_OUT>,
+				 <&clk IMX8MP_SYS_PLL2_1000M>,
+				 <&clk IMX8MP_SYS_PLL1_800M>;
+	assigned-clock-rates = <0>, <500000000>, <200000000>;
+	blk-ctl = <&media_blk_ctrl>;
+};
+
+&aips4{
+	dma_apbh: dma-apbh@33000000 {
+		compatible = "fsl,imx28-dma-apbh";
+		reg = <0x33000000 0x2000>;
+		interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+			<GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+			<GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+			<GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "gpmi0", "gpmi1", "gpmi2", "gpmi3";
+		#dma-cells = <1>;
+		dma-channels = <4>;
+		clocks = <&clk IMX8MP_CLK_NAND_USDHC_BUS_RAWNAND_CLK>;
+	};
+
+	gpmi: nand-controller@33002000 {
+		compatible = "fsl,imx7d-gpmi-nand";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x33002000 0x2000>, <0x33004000 0x4000>;
+		reg-names = "gpmi-nand", "bch";
+		interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-names = "bch";
+		clocks = <&clk IMX8MP_CLK_NAND_ROOT>,
+			<&clk IMX8MP_CLK_NAND_USDHC_BUS_RAWNAND_CLK>;
+		clock-names = "gpmi_io", "gpmi_bch_apb";
+		dmas = <&dma_apbh 0>;
+		dma-names = "rx-tx";
+		status = "disabled";
+	};
+};
+
+#ifdef CONFIG_FSL_CAAM
+&sec_jr0 {
+	bootph-pre-ram;
+};
+
+&sec_jr1 {
+	bootph-pre-ram;
+};
+
+&sec_jr2 {
+	bootph-pre-ram;
+};
+#endif
+
+&snvs {
+	status = "disabled";
+};
+
+&snvs_rtc {
+	status = "disabled";
+};
+
+&binman {
+	filename = "flash.bin";
+	section {
+		pad-byte = <0x00>;
+
+#ifdef CONFIG_IMX_HAB
+		nxp-imx8mcst@0 {
+			filename = "u-boot-spl-mkimage.signed.bin";
+			nxp,loader-address = <CONFIG_SPL_TEXT_BASE>;
+			nxp,unlock;
+			args;	/* Needed by mkimage etype superclass */
+#endif
+
+			binman_imx_spl: nxp-imx8mimage {
+				filename = "u-boot-spl-mkimage.bin";
+				nxp,boot-from = "sd";
+				nxp,rom-version = <2>;
+				nxp,loader-address = <CONFIG_SPL_TEXT_BASE>;
+				args;	/* Needed by mkimage etype superclass */
+
+				section {
+					filename = "u-boot-spl-ddr.bin";
+					pad-byte = <0xff>;
+					align-size = <4>;
+					align = <4>;
+
+					u-boot-spl {
+						align-end = <4>;
+					};
+
+					ddr-1d-imem-fw {
+#ifdef CONFIG_IMX8M_LPDDR4
+						filename = "lpddr4_pmu_train_1d_imem_202006.bin";
+#else
+						filename = "ddr4_imem_1d_202006.bin";
+#endif
+						type = "blob-ext";
+						align-end = <4>;
+					};
+
+					ddr-1d-dmem-fw {
+#ifdef CONFIG_IMX8M_LPDDR4
+						filename = "lpddr4_pmu_train_1d_dmem_202006.bin";
+#else
+						filename = "ddr4_dmem_1d_202006.bin";
+#endif
+						type = "blob-ext";
+						align-end = <4>;
+					};
+
+					ddr-2d-imem-fw {
+#ifdef CONFIG_IMX8M_LPDDR4
+
+						filename = "lpddr4_pmu_train_2d_imem_202006.bin";
+#else
+						filename = "ddr4_imem_2d_202006.bin";
+#endif
+						type = "blob-ext";
+						align-end = <4>;
+					};
+
+					ddr-2d-dmem-fw {
+#ifdef CONFIG_IMX8M_LPDDR4
+						filename = "lpddr4_pmu_train_2d_dmem_202006.bin";
+#else
+						filename = "ddr4_dmem_2d_202006.bin";
+#endif
+						type = "blob-ext";
+						align-end = <4>;
+					};
+				};
+			};
+#ifdef CONFIG_IMX_HAB
+		};
+
+		nxp-imx8mcst@1 {
+			filename = "u-boot-fit.signed.bin";
+			nxp,loader-address = <CONFIG_SPL_LOAD_FIT_ADDRESS>;
+			offset = <0x58000>;
+			args;	/* Needed by mkimage etype superclass */
+#endif
+
+			binman_imx_fit: fit {
+				description = "Configuration to load ATF before U-Boot";
+				filename = "u-boot.itb";
+#ifndef CONFIG_IMX_HAB
+				fit,external-offset = <CONFIG_FIT_EXTERNAL_OFFSET>;
+#endif
+				fit,fdt-list = "of-list";
+				#address-cells = <1>;
+				offset = <0x58000>;
+
+				images {
+					uboot {
+						description = "U-Boot (64-bit)";
+						type = "standalone";
+						arch = "arm64";
+						compression = "none";
+						load = <CONFIG_TEXT_BASE>;
+
+						uboot_blob: blob-ext {
+							filename = "u-boot-nodtb.bin";
+						};
+					};
+
+#ifndef CONFIG_ARMV8_PSCI
+					atf {
+						description = "ARM Trusted Firmware";
+						type = "firmware";
+						arch = "arm64";
+						compression = "none";
+						load = <0x970000>;
+						entry = <0x970000>;
+
+						atf_blob: atf-blob {
+							filename = "bl31.bin";
+							type = "atf-bl31";
+						};
+					};
+#endif
+
+#ifdef CONFIG_OPTEE
+					tee: tee {
+						description = "OP-TEE";
+						type = "tee";
+						arch = "arm64";
+						compression = "none";
+						os = "tee";
+						load = <CONFIG_IMX8M_OPTEE_LOAD_ADDR>;
+						entry = <CONFIG_IMX8M_OPTEE_LOAD_ADDR>;
+
+						tee-os {
+							filename = "tee.bin";
+						};
+					};
+#endif
+
+					@fdt-SEQ {
+						description = "NAME";
+						type = "flat_dt";
+						compression = "none";
+
+						blob-ext {
+							filename = "u-boot.dtb";
+						};
+					};
+				};
+
+				configurations {
+					default = "@config-DEFAULT-SEQ";
+
+					@config-SEQ {
+						description = "NAME";
+						fdt = "fdt-SEQ";
+						firmware = "uboot";
+#ifndef CONFIG_ARMV8_PSCI
+#ifdef CONFIG_OPTEE
+						loadables = "atf", "tee";
+#else
+						loadables = "atf";
+#endif
+#endif
+					};
+				};
+			};
+#ifdef CONFIG_IMX_HAB
+		};
+#endif
+	};
+};

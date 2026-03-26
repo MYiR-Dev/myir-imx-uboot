@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright 2019, 2021 NXP
+ */
+
+&pinctrl_uart1 {
+	bootph-all;
+};
+
+&reg_sd1_vmmc {
+	off-on-delay-us = <10000>;
+	startup-delay-us = <2000>;
+};
+
+&reg_sd3_vmmc {
+	off-on-delay-us = <10000>;
+	startup-delay-us = <2000>;
+};
