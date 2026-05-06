@@ -1,0 +1,17 @@
+if TARGET_MYD_MX6ULL_14X14
+
+config SYS_BOARD
+	default "myd_y6ull_14x14"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "myd_y6ull_14x14"
+	
+config IMX_CONFIG
+	default "board/myir/myd_y6ull_14x14/imximage.cfg"
+	
+config TEXT_BASE
+	default 0x87800000
+endif
