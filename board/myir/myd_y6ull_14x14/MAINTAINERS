@@ -4,3 +4,4 @@ S:	Maintained
 F:	board/myir/myd_y6ull_14x14/
 F:	include/configs/myd_y6ull_14x14.h
 F:	configs/myd_imx6ull_emmc_defconfig
+F:	configs/myd_imx6ull_nand_ddr256_defconfig

@@ -23,6 +23,8 @@
 #define BOOTARGS_CMA_SIZE   ""
 #endif
 
+#define BOOTARGS_EARLYCON "earlycon=uart8250,mmio32,0x02020000 "
+
 #define CFG_MXC_UART_BASE		UART1_BASE
 
 /* MMC Configs */
@@ -37,11 +39,43 @@
 #endif
 #endif
 
-#ifdef CONFIG_NAND_BOOT
-#define MFG_NAND_PARTITION "mtdparts=gpmi-nand:64m(nandboot),16m(nandkernel),16m(nanddtb),16m(nandtee),-(nandrootfs)"
+/*
+ * Presence of NAND in the image (pins shared with USDHC2). Partition layout must
+ * match Linux + CONFIG_MTDPARTS_DEFAULT when used; not tied to CONFIG_NAND_BOOT so
+ * the same mtdparts describe hardware whenever the driver is built in.
+ */
+#ifdef CONFIG_NAND_MXS
+#define MFG_NAND_PARTITION \
+	"mtdparts=gpmi-nand:5m(boot),1m(env),10m(kernel),1m(dtb),-(rootfs)"
 #else
 #define MFG_NAND_PARTITION ""
 #endif
+
+/*
+ * NAND boards only expose one USDHC instance (typically SD slot = mmc dev 0 in U-Boot);
+ * MYD_EMMC_SKU uses mmc dev from CONFIG_SYS_MMC_ENV_DEV below.
+ */
+#ifdef CONFIG_NAND_MXS
+#define MYD_MMCBOOT_LINE "mmcdev=0\0"
+#define MYD_NAND_ENV_STRINGS                                                   \
+	"nandargs=setenv bootargs console=${console},${baudrate} "                \
+		BOOTARGS_EARLYCON                                                     \
+		"ubi.mtd=rootfs root=ubi0:rootfs rootfstype=ubifs "                   \
+		BOOTARGS_CMA_SIZE MFG_NAND_PARTITION "\0"                             \
+	"nandboot=echo Booting from NAND ...; run nandargs; "                    \
+		"mtd read kernel ${loadaddr} 0 0xa00000; "                            \
+		"mtd read dtb ${fdt_addr} 0 0x100000; "                               \
+		"if test ${tee} = yes; then "                                         \
+			"nand read ${tee_addr} 0x6000000 0x400000; "                       \
+			"bootm ${tee_addr} - ${fdt_addr}; "                               \
+		"else bootz ${loadaddr} - ${fdt_addr}; fi\0"
+
+#else /* !CONFIG_NAND_MXS */
+
+#define MYD_MMCBOOT_LINE "mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV) "\0"
+#define MYD_NAND_ENV_STRINGS ""
+
+#endif /* CONFIG_NAND_MXS */
 
 #define CFG_MFG_ENV_SETTINGS \
 	CFG_MFG_ENV_SETTINGS_DEFAULT \
@@ -53,30 +87,22 @@
 	"mtdparts=" MFG_NAND_PARTITION \
 	"\0"\
 
-#if defined(CONFIG_NAND_BOOT)
-#define CFG_EXTRA_ENV_SETTINGS \
-	CFG_MFG_ENV_SETTINGS \
-	TEE_ENV \
-	"splashimage=0x8c000000\0" \
-	"fdt_addr=0x83000000\0" \
-	"fdt_high=0xffffffff\0"	  \
-	"tee_addr=0x84000000\0" \
-	"console=ttymxc0\0" \
-	"bootargs=console=ttymxc0,115200 ubi.mtd=nandrootfs "  \
-		"root=ubi0:rootfs rootfstype=ubifs "		     \
-		BOOTARGS_CMA_SIZE \
-		MFG_NAND_PARTITION \
-		"\0" \
-	"bootcmd=nand read ${loadaddr} 0x4000000 0xc00000;"\
-		"nand read ${fdt_addr} 0x5000000 0x100000;"\
-		"if test ${tee} = yes; then " \
-			"nand read ${tee_addr} 0x6000000 0x400000;"\
-			"bootm ${tee_addr} - ${fdt_addr};" \
-		"else " \
-			"bootz ${loadaddr} - ${fdt_addr};" \
-		"fi\0"
-
+/*
+ * CFG_EXTRA_ENV_SETTINGS is shared for MMC/SD recovery and NAND field boot.
+ * Default bootcmd is CONFIG_BOOTCOMMAND in defconfig (see myd_imx6ull_nand_ddr256_defconfig;
+ * same MMC flow as emmc build, nandboot fallback instead of netboot alone):
+ * MMC first (FAT partition ${mmcpart}), then nandboot fallback when NAND is compiled in.
+ *
+ * Keeping CONFIG_NAND_BOOT=y does not change this anymore; only use NAND_BOOT where
+ * the SoC/boot ROM NAND path truly requires it at link time / SPL build.
+ */
+/* Match CONFIG_DEFAULT_DEVICE_TREE from the active defconfig (nand-ddr256 / nand-ddr512 / emmc). */
+#ifdef CONFIG_DEFAULT_DEVICE_TREE
+#define MYD_FDT_FILE_ENV "fdt_file=" CONFIG_DEFAULT_DEVICE_TREE ".dtb\0"
 #else
+#define MYD_FDT_FILE_ENV "fdt_file=myd-y6ull-14x14.dtb\0"
+#endif
+
 #define CFG_EXTRA_ENV_SETTINGS \
 	CFG_MFG_ENV_SETTINGS \
 	TEE_ENV \
@@ -85,18 +111,20 @@
 	"console=ttymxc0\0" \
 	"fdt_high=0xffffffff\0" \
 	"initrd_high=0xffffffff\0" \
-	"fdt_file=myd-y6ull-14x14-emmc.dtb\0" \
+	MYD_FDT_FILE_ENV \
 	"fdt_addr=0x83000000\0" \
 	"tee_addr=0x84000000\0" \
 	"tee_file=undefined\0" \
 	"boot_fdt=try\0" \
 	"ip_dyn=yes\0" \
+	"panel=MYIR-LCD-7-800x480\0" \
 	"splashimage=0x8c000000\0" \
-	"mmcdev="__stringify(CONFIG_SYS_MMC_ENV_DEV)"\0" \
+	"splashpos=m,m\0" \
+	MYD_MMCBOOT_LINE \
 	"mmcpart=1\0" \
-	"mmcroot=/dev/mmcblk1p2 rootwait rw\0" \
+	"mmcroot=/dev/mmcblk0p2 rootwait rw\0" \
 	"mmcautodetect=yes\0" \
-	"mmcargs=setenv bootargs console=${console},${baudrate} " \
+	"mmcargs=setenv bootargs console=${console},${baudrate} " BOOTARGS_EARLYCON \
 		BOOTARGS_CMA_SIZE \
 		"root=${mmcroot}\0" \
 	"loadbootscript=" \
@@ -125,7 +153,8 @@
 				"bootz; " \
 			"fi; " \
 		"fi;\0" \
-	"netargs=setenv bootargs console=${console},${baudrate} " \
+	MYD_NAND_ENV_STRINGS \
+	"netargs=setenv bootargs console=${console},${baudrate} " BOOTARGS_EARLYCON \
 		BOOTARGS_CMA_SIZE \
 		"root=/dev/nfs " \
 	"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
@@ -181,8 +210,6 @@
 					"echo WARNING: Could not determine tee to use; " \
 				"fi; " \
 			"fi;\0" \
-
-#endif
 
 /* Miscellaneous configurable options */
 

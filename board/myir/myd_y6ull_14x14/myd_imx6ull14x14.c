@@ -121,7 +121,17 @@ void ldo_mode_set(int ldo_bypass)
 
 int dram_init(void)
 {
-	gd->ram_size = imx_ddr_size();
+	unsigned int sz = imx_ddr_size();
+
+#if CONFIG_MYD_DDR_CAPACITY_MB > 0
+	{
+		unsigned int cap = CONFIG_MYD_DDR_CAPACITY_MB * SZ_1M;
+
+		if (sz > cap)
+			sz = cap;
+	}
+#endif
+	gd->ram_size = sz;
 
 	return 0;
 }
@@ -275,6 +285,15 @@ static inline int setup_lcd(void) { return 0; }
 #endif
 
 int board_early_init_f(void)
+{
+	return 0;
+}
+
+/*
+ * board_r.c references this when CONFIG_BOARD_EARLY_INIT_R is set; keep the
+ * symbol always defined for this board (LCD bring-up is in board_late_init).
+ */
+int board_early_init_r(void)
 {
 	return 0;
 }
