@@ -5,16 +5,15 @@ config MYD_DDR_CAPACITY_MB
 	default 256
 	range 0 1024
 	help
-	  imx_ddr_size() reads MMDC geometry and can over-report versus actual
-	  populated DRAM. U-Boot clamps gd->ram_size to this value so
-	  arch_fixup_fdt() passes the correct /memory reg to Linux.
+	  dram_init() uses get_ram_size() up to 512 MiB so gd->ram_size matches
+	  populated DRAM even when imx_ddr_size() follows an oversized DCD.
 
-	  Use 0 to disable clamping (gd->ram_size = imx_ddr_size() only). This
-	  can serve a single NAND image on 256 MiB and 512 MiB boards when MMDC
-	  reports the true size; if any SKU over-reports, build per-SKU defconfig
-	  with 256 / 512 instead.
+	  If non-zero, gd->ram_size is then clamped to this many MiB (useful for
+	  per-SKU defconfigs or if probing must be capped). Use 0 for no clamp.
 
-	  Typical values: 256 (DDR256 NAND / default), 512 (DDR512 NAND or eMMC).
+	  Typical values: 256 (DDR256 NAND defconfig), 512 (DDR512 NAND or eMMC).
+	  The DCD file (CONFIG_IMX_CONFIG / imximage*.cfg) must match hardware; the
+	  ddr512 and emmc defconfigs set imximage-ddr512.cfg for 512 MiB MMDC.
 
 config SYS_BOARD
 	default "myd_y6ull_14x14"

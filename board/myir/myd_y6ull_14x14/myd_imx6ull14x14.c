@@ -5,6 +5,7 @@
  */
 
 #include <init.h>
+#include <linux/sizes.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/iomux.h>
 #include <asm/arch/imx-regs.h>
@@ -22,7 +23,6 @@
 #include <fsl_esdhc_imx.h>
 #include <i2c.h>
 #include <miiphy.h>
-#include <linux/sizes.h>
 #include <linux/delay.h>
 #include <mmc.h>
 #include <miiphy.h>
@@ -121,7 +121,25 @@ void ldo_mode_set(int ldo_bypass)
 
 int dram_init(void)
 {
-	unsigned int sz = imx_ddr_size();
+	unsigned int sz;
+	unsigned int dcd_sz;
+	unsigned long probed;
+
+	/*
+	 * Prefer the larger of get_ram_size() and imx_ddr_size(). Probing can
+	 * stop at 256 MiB (alias / margin) while MMDC MDCTL already reflects the
+	 * DCD (e.g. 512 MiB from imximage-ddr512.cfg); using probe alone would
+	 * keep gd->ram_size and the kernel FDT fixup at 256 MiB.
+	 */
+	dcd_sz = imx_ddr_size();
+	probed = (unsigned long)get_ram_size((long *)PHYS_SDRAM, SZ_512M);
+	if (probed)
+		sz = (unsigned int)probed;
+	else
+		sz = dcd_sz;
+
+	if (dcd_sz && dcd_sz > sz)
+		sz = dcd_sz;
 
 #if CONFIG_MYD_DDR_CAPACITY_MB > 0
 	{

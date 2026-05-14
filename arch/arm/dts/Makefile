@@ -866,6 +866,7 @@ dtb-$(CONFIG_MX6ULL) += \
 	myd-y6ull-14x14.dtb \
 	myd-y6ull-14x14-emmc.dtb \
 	myd-y6ull-14x14-nand-ddr256.dtb \
+	myd-y6ull-14x14-nand-ddr512.dtb \
 
 dtb-$(CONFIG_ARCH_MX6) += \
 	imx6q-apalis-eval.dtb \
