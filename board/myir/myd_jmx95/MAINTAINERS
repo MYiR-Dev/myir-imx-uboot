@@ -1,0 +1,6 @@
+MYD-JMX95 BOARD
+M:	Mazel Li <mazel.li@myir.cn>
+S:	Maintained
+F:	board/myir/myd_jmx95/
+F:	include/configs/myd_jmx95.h
+F:	configs/myd_jmx95_15x15_defconfig

@@ -1,0 +1,100 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright 2024 NXP
+ */
+
+/ {
+	chosen {
+		bootargs = "console=ttyLP0,115200 earlycon";
+	};
+};
+
+&lpuart1 {
+	bootph-pre-ram;
+};
+
+&reg_usdhc2_vmmc {
+	bootph-pre-ram;
+};
+
+&usdhc1 {
+	bootph-pre-ram;
+};
+
+&usdhc2 {
+	bootph-pre-ram;
+};
+
+&wdog3 {
+	status = "okay";
+};
+
+&pinctrl_uart1 {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc1 {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc1_100mhz {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc1_200mhz {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2 {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2_100mhz {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2_200mhz {
+	bootph-pre-ram;
+};
+
+&pinctrl_usdhc2_gpio {
+	bootph-pre-ram;
+};
+
+&pinctrl_reg_usdhc2_vmmc {
+	bootph-pre-ram;
+};
+
+&usb2 {
+	compatible = "fsl,imx8mm-usb", "fsl,imx7d-usb";
+	/delete-property/power-domains;
+};
+
+&usb3 {
+	/delete-property/power-domains;
+};
+
+&usb3_dwc3 {
+	compatible = "fsl,imx8mq-dwc3", "snps,dwc3";
+};
+
+&dispmix_csr {
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-rates;
+	/delete-property/ assigned-clock-parents;
+};
+
+&mipi_dsi {
+	assigned-clocks = <&scmi_clk IMX95_CLK_MIPIPHYPLLBYPASS>;
+	assigned-clock-parents = <&scmi_clk IMX95_CLK_VIDEOPLL1>;
+};
+
+
+&lpi2c3 {
+	bootph-some-ram;
+};
+
+&pinctrl_lpi2c3 {
+	bootph-some-ram;
+};
+

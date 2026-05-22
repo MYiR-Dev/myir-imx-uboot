@@ -1,0 +1,12 @@
+if TARGET_MYD_JMX95_15X15
+
+config SYS_BOARD
+	default "myd_jmx95"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "myd_jmx95"
+
+endif
