@@ -20,6 +20,7 @@
 #include "../dts/upstream/src/arm64/myir/imx95-power.h"
 #include <asm/arch/sys_proto.h>
 #include <i2c.h>
+#include <i2c_eeprom.h>
 #include <dm/uclass.h>
 #include <dm/uclass-internal.h>
 #include <net.h>
@@ -149,7 +150,6 @@ int myir_set_data_from_eeprom(void)
 {
 	int ret;
 	struct udevice *dev;
-	u8 ethaddr[ARP_HLEN * MAX_ETHERNET] = {0};
 
 	myir_eeprom.crc32=0x12345678;
 
