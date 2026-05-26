@@ -197,8 +197,8 @@
 		interrupts = <14 IRQ_TYPE_LEVEL_LOW>;
 	};
 
-	ethphy1: ethernet-phy@6 {
-		reg = <6>;
+	ethphy1: ethernet-phy@7 {
+		reg = <7>;
 		eee-broken-1000t;
 		reset-gpios = <&gpio2 30 GPIO_ACTIVE_HIGH>;
 		reset-assert-us = <10000>;
