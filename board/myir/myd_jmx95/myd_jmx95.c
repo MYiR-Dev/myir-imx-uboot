@@ -17,7 +17,9 @@
 #include <asm/gpio.h>
 #include <power/regulator.h>
 #include <scmi_agent.h>
+#include <scmi_protocols.h>
 #include "../dts/upstream/src/arm64/myir/imx95-power.h"
+#include <asm/arch/imx-regs.h>
 #include <asm/arch/sys_proto.h>
 #include <i2c.h>
 #include <i2c_eeprom.h>
@@ -424,6 +426,54 @@ int board_init(void)
 	return 0;
 }
 
+/* i.MX95 NPU power domain ID (matches SM firmware DEV_SM_PD_NPU) */
+#define IMX95_PD_NPU   20
+/*
+ * Check if NPU domain is powered via SCMI power domain protocol.
+ * NPU SRAM (CONFIG_SAVED_QB_STATE_BASE) is only accessible when the
+ * NPU domain is powered on. On warm reboot, SM may report POR as the
+ * reset reason even though the NPU domain was powered down, causing a
+ * Synchronous Abort when accessing NPU SRAM. This function provides a
+ * reliable check of the actual NPU power state.
+ */
+static bool is_npu_powered(void)
+{
+	u32 domain_id = IMX95_PD_NPU;
+	struct {
+		s32 status;
+		u32 pstate;
+	} out = { 0 };
+	struct scmi_msg msg = {
+		.protocol_id = SCMI_PROTOCOL_ID_POWER_DOMAIN,
+		.message_id = SCMI_PWD_STATE_GET,
+		.in_msg = (u8 *)&domain_id,
+		.in_msg_sz = sizeof(domain_id),
+		.out_msg = (u8 *)&out,
+		.out_msg_sz = sizeof(out),
+	};
+	struct udevice *dev;
+	int ret;
+
+	ret = uclass_get_device_by_name(UCLASS_CLK, "protocol@14", &dev);
+	if (ret) {
+		printf("is_npu_powered: SCMI dev not found, ret=%d\n", ret);
+		return false;
+	}
+
+	ret = devm_scmi_process_msg(dev, &msg);
+	if (ret) {
+		printf("is_npu_powered: SCMI msg failed, ret=%d\n", ret);
+		return false;
+	}
+	if (out.status) {
+		printf("is_npu_powered: SCMI status=0x%x\n", out.status);
+		return false;
+	}
+
+	printf("is_npu_powered: NPU pstate=0x%08x (0x0=ON, 0x40000000=OFF)\n", out.pstate);
+	return (out.pstate == 0);
+}
+
 int board_late_init(void)
 {
 	if (IS_ENABLED(CONFIG_ENV_IS_IN_MMC))
@@ -434,6 +484,32 @@ int board_late_init(void)
 	env_set("sec_boot", "yes");
 #endif
 	myir_set_data_from_eeprom();
+
+        /* Auto-save DDR QuickBoot training data on new training */
+#ifdef CONFIG_CMD_QB
+        {
+                extern bool qb_check(void);
+                extern int do_qb_save(struct cmd_tbl *, int, int, char * const []);
+
+                /* Check actual NPU domain power state before accessing
+                 * NPU SRAM. SCMI reset reason alone is unreliable because
+                 * SM may report POR for Linux warm reboot even when the
+                 * NPU domain is powered down. */
+                if (!is_npu_powered()) {
+                        printf("DDR QB: NPU domain not powered, skipping NPU SRAM access\n");
+                } else {
+                        volatile uint32_t *trained_flag =
+                                (volatile uint32_t *)(CONFIG_SAVED_QB_STATE_BASE - 8);
+
+                        if (qb_check() && (*trained_flag == 0xDEADBEEFU)) {
+                                printf("DDR QB: new training data detected, auto-saving to flash...\n");
+                                do_qb_save(NULL, 0, 0, NULL);
+                                printf("DDR QB: auto-save done, next boot will use QuickBoot\n");
+                        }
+                        printf("DDR QB: trained_flag=0x%08x\n",*trained_flag);
+                }
+        }
+#endif /* CONFIG_CMD_QB */
 
 	return 0;
 }

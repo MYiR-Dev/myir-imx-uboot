@@ -68,7 +68,7 @@ static u32 qb_crc32(const void* addr, u32 len)
 	return ~crc;
 }
 
-static bool qb_check(void)
+bool qb_check(void)
 {
 	struct ddrphy_qb_state *qb_state;
 	u32 i, size, crc;
@@ -462,7 +462,7 @@ static int do_qb_spi(int dev, bool save)
 	return ret;
 }
 
-static int do_qb_save(struct cmd_tbl *cmdtp, int flag,
+int do_qb_save(struct cmd_tbl *cmdtp, int flag,
 		      int argc, char * const argv[])
 {
 	int ret = CMD_RET_FAILURE;
