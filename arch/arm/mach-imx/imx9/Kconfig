@@ -219,6 +219,18 @@ config TARGET_IMX95_15X15_FRDM
 	select IMX_SM_LMM
 	select IMX_SM_CPU
 
+config TARGET_MYD_JMX95_15X15
+	bool "myd_jmx95_15x15"
+	select IMX95
+	imply BOOTSTD_BOOTCOMMAND
+	imply BOOTSTD_FULL
+	select CMD_REMOTEPROC
+	select REMOTEPROC_IMX
+	select REGMAP
+	select SYSCON
+	select IMX_SM_LMM
+	select IMX_SM_CPU
+
 config TARGET_IMX943_EVK
 	bool "imx943_evk"
 	select IMX94
@@ -262,22 +274,11 @@ source "board/phytec/phycore_imx93/Kconfig"
 source "board/variscite/imx93_var_som/Kconfig"
 source "board/freescale/imx95_evk/Kconfig"
 source "board/freescale/imx95_frdm/Kconfig"
+source "board/myir/myd_jmx95/Kconfig"
 source "board/toradex/verdin-imx95/Kconfig"
 source "board/freescale/imx94_evk/Kconfig"
 source "board/freescale/imx94_orangebox/Kconfig"
-config TARGET_MYD_JMX95_15X15
-	bool "myd_jmx95_15x15"
-	select IMX95
-	imply BOOTSTD_BOOTCOMMAND
-	imply BOOTSTD_FULL
-	select CMD_REMOTEPROC
-	select REMOTEPROC_IMX
-	select REGMAP
-	select SYSCON
-	select IMX_SM_LMM
-
 source "board/myir/myd_lmx9x/Kconfig"
-source "board/myir/myd_jmx95/Kconfig"
 
 endif
 
