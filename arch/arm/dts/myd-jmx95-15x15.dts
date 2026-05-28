@@ -190,11 +190,9 @@
 	ethphy0: ethernet-phy@5 {
 		reg = <5>;
 		eee-broken-1000t;
-		reset-gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&exp_gpio 6 GPIO_ACTIVE_HIGH>;
 		reset-assert-us = <10000>;
 		reset-deassert-us = <80000>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <14 IRQ_TYPE_LEVEL_LOW>;
 	};
 
 	ethphy1: ethernet-phy@7 {
@@ -203,8 +201,6 @@
 		reset-gpios = <&gpio2 30 GPIO_ACTIVE_HIGH>;
 		reset-assert-us = <10000>;
 		reset-deassert-us = <80000>;
-		interrupt-parent = <&gpio4>;
-		interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
 	};
 };
 
@@ -292,8 +288,6 @@
 			IMX95_PAD_ENET1_RD1__NETCMIX_TOP_ETH0_RGMII_RD1		0x57e
 			IMX95_PAD_ENET1_RD2__NETCMIX_TOP_ETH0_RGMII_RD2		0x57e
 			IMX95_PAD_ENET1_RD3__NETCMIX_TOP_ETH0_RGMII_RD3		0x57e
-			IMX95_PAD_SAI1_RXD0__AONMIX_TOP_GPIO1_IO_BIT14		0x51e  /*PHY0_RESET*/
-			IMX95_PAD_ENET2_MDC__GPIO4_IO_BIT14		0x31e  /*PHY0_INT*/
 		>;
 	};
 
@@ -312,7 +306,6 @@
 			IMX95_PAD_ENET2_RD2__NETCMIX_TOP_ETH1_RGMII_RD2		0x57e
 			IMX95_PAD_ENET2_RD3__NETCMIX_TOP_ETH1_RGMII_RD3		0x57e
 			IMX95_PAD_GPIO_IO30__GPIO2_IO_BIT30		0x31e  /*PHY1_RESET*/
-			IMX95_PAD_ENET2_MDIO__GPIO4_IO_BIT15		0x31e  /*PHY1_INT*/
 		>;
 	};
 

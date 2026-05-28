@@ -26,6 +26,8 @@
 #include <dm/uclass.h>
 #include <dm/uclass-internal.h>
 #include <net.h>
+#include <timestamp.h>
+#include <version.h>
 
 #define MAX_ETHERNET   0x2
 
@@ -363,6 +365,8 @@ static void netc_phy_rst(const char *gpio_name, const char *label)
 void netc_init(void)
 {
 	int ret;
+	struct gpio_desc desc_phy1_reset; 
+	struct gpio_desc desc_phy2_reset; 
 
 	ret = imx9_scmi_power_domain_enable(IMX95_PD_NETC, false);
 	udelay(10000);
@@ -374,8 +378,55 @@ void netc_init(void)
 		return;
 	}
 
-	netc_phy_rst("GPIO1_14", "ENET1_RST_B");
-	netc_phy_rst("GPIO2_30", "ENET2_RST_B");
+#define PHY1_RESET "gpio@20_6"
+#define PHY1_RESET_LABEL "ENET1_RST_B"
+
+#define PHY2_RESET "GPIO2_30"
+#define PHY2_RESET_LABEL "ENET2_RST_B"
+
+
+	ret = dm_gpio_lookup_name(PHY1_RESET, &desc_phy1_reset);
+	if (ret) {
+		printf("%s lookup %s failed ret = %d\n", __func__, PHY1_RESET, ret);
+		return;
+	}
+	ret = dm_gpio_request(&desc_phy1_reset, PHY1_RESET_LABEL);
+	if (ret) {
+		printf("%s request %s failed ret = %d\n", __func__, PHY1_RESET_LABEL, ret);
+		return;
+	}
+	
+
+	ret = dm_gpio_lookup_name(PHY2_RESET, &desc_phy2_reset);
+	if (ret) {
+		printf("%s lookup %s failed ret = %d\n", __func__, PHY2_RESET, ret);
+		return;
+	}
+	ret = dm_gpio_request(&desc_phy2_reset, PHY2_RESET_LABEL);
+	if (ret) {
+		printf("%s request %s failed ret = %d\n", __func__, PHY2_RESET_LABEL, ret);
+		return;
+	}
+
+	dm_gpio_set_dir_flags(&desc_phy1_reset, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
+	
+	dm_gpio_set_dir_flags(&desc_phy2_reset, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE | GPIOD_ACTIVE_LOW);
+
+
+	dm_gpio_set_value(&desc_phy1_reset, 1);
+	dm_gpio_set_value(&desc_phy2_reset, 1);
+	udelay(10000);
+	dm_gpio_set_value(&desc_phy1_reset, 0);
+	dm_gpio_set_value(&desc_phy2_reset, 0);
+	udelay(10000);
+	dm_gpio_set_value(&desc_phy1_reset, 1);
+	dm_gpio_set_value(&desc_phy2_reset, 1);
+	//udelay(80000);
+
+
+
+	//netc_phy_rst("GPIO1_14", "ENET1_RST_B");
+	//netc_phy_rst("GPIO2_30", "ENET2_RST_B");
 
 	pci_init();
 }
