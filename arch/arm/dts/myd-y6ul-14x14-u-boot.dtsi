@@ -25,3 +25,11 @@
 &iomuxc {
 	bootph-all;
 };
+
+&iomuxc_snvs {
+	bootph-all;
+};
+
+&lcdif {
+	bootph-all;
+};

@@ -329,36 +329,32 @@ int stdio_add_devices(void)
 #if CONFIG_IS_ENABLED(SYS_I2C_LEGACY)
 	i2c_init_all();
 #endif
-	if (IS_ENABLED(CONFIG_VIDEO)) {
+#if CONFIG_IS_ENABLED(VIDEO)
 #ifdef CONFIG_VIDEO_LINK
-		video_link_init();
+	video_link_init();
 #endif
-		/*
-		 * If the console setting is not in environment variables then
-		 * console_init_r() will not be calling iomux_doenv() (which
-		 * calls console_search_dev()). So we will not dynamically add
-		 * devices by calling stdio_probe_device().
-		 *
-		 * So just probe all video devices now so that whichever one is
-		 * required will be available.
-		 */
+	/*
+	 * Probe video devices before splash so bmp_display can use the
+	 * framebuffer. Required even when CONFIG_SYS_CONSOLE_IS_IN_ENV is set.
+	 */
+	{
 		struct udevice *vdev;
 		int ret;
 
-		if (!IS_ENABLED(CONFIG_SYS_CONSOLE_IS_IN_ENV)) {
-			for (ret = uclass_first_device_check(UCLASS_VIDEO,
-							     &vdev);
-					vdev;
-					ret = uclass_next_device_check(&vdev)) {
-				if (ret)
-					printf("%s: Failed to probe video device '%s' (ret=%d)\n",
-					       __func__, vdev->name, ret);
-			}
+		for (ret = uclass_first_device_check(UCLASS_VIDEO, &vdev);
+		     vdev;
+		     ret = uclass_next_device_check(&vdev)) {
+			if (ret)
+				printf("%s: Failed to probe video device '%s' (ret=%d)\n",
+				       __func__, vdev->name, ret);
 		}
-		if (IS_ENABLED(CONFIG_SPLASH_SCREEN) &&
-		    IS_ENABLED(CONFIG_CMD_BMP))
-			splash_display();
 	}
+#if defined(CONFIG_SPLASH_SCREEN) && defined(CONFIG_CMD_BMP)
+	splash_display();
+#endif
+#elif defined(CONFIG_VIDEO) || defined(CONFIG_CFB_CONSOLE)
+	drv_video_init();
+#endif
 
 	drv_system_init();
 	serial_stdio_init();

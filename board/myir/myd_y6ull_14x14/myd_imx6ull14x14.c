@@ -28,6 +28,8 @@
 #include <miiphy.h>
 #include <power/pmic.h>
 #include <power/pfuze3000_pmic.h>
+#include <asm/mach-imx/video.h>
+#include <linux/fb.h>
 #include "../common/pfuze.h"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -274,36 +276,127 @@ int board_phy_config(struct phy_device *phydev)
 }
 #endif
 
-#ifdef CONFIG_VIDEO
+#ifdef CONFIG_VIDEO_MXS
+static iomux_v3_cfg_t const lcd_pwr_pads[] = {
+	MX6_PAD_LCD_RESET__GPIO3_IO04 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_GPIO1_IO08__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_GPIO1_IO09__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_SNVS_TAMPER2__GPIO5_IO02 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_LCD_ENABLE__GPIO3_IO01 | MUX_PAD_CTRL(NO_PAD_CTRL),
+};
+
 static iomux_v3_cfg_t const lcd_pads[] = {
-	/* Use GPIO for Brightness adjustment, duty cycle = period. */
+	MX6_PAD_LCD_CLK__LCDIF_CLK | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_ENABLE__LCDIF_ENABLE | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_HSYNC__LCDIF_HSYNC | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_VSYNC__LCDIF_VSYNC | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA00__LCDIF_DATA00 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA01__LCDIF_DATA01 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA02__LCDIF_DATA02 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA03__LCDIF_DATA03 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA04__LCDIF_DATA04 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA05__LCDIF_DATA05 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA06__LCDIF_DATA06 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA07__LCDIF_DATA07 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA08__LCDIF_DATA08 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA09__LCDIF_DATA09 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA10__LCDIF_DATA10 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA11__LCDIF_DATA11 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA12__LCDIF_DATA12 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA13__LCDIF_DATA13 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA14__LCDIF_DATA14 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA15__LCDIF_DATA15 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_LCD_DATA16__LCDIF_DATA16 | MUX_PAD_CTRL(LCD_PAD_CTRL),
+	MX6_PAD_SNVS_TAMPER9__GPIO5_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_GPIO1_IO08__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
-static int setup_lcd(void)
+void do_enable_parallel_lcd(struct display_info_t const *dev)
 {
-	enable_lcdif_clock(LCDIF1_BASE_ADDR, 1);
+	enable_lcdif_clock(dev->bus, 1);
 
 	imx_iomux_v3_setup_multiple_pads(lcd_pads, ARRAY_SIZE(lcd_pads));
 
-	/* Reset the LCD */
 	gpio_request(IMX_GPIO_NR(5, 9), "lcd reset");
-	gpio_direction_output(IMX_GPIO_NR(5, 9) , 0);
+	gpio_direction_output(IMX_GPIO_NR(5, 9), 0);
 	udelay(500);
-	gpio_direction_output(IMX_GPIO_NR(5, 9) , 1);
+	gpio_direction_output(IMX_GPIO_NR(5, 9), 1);
 
-	/* Set Brightness to high */
 	gpio_request(IMX_GPIO_NR(1, 8), "backlight");
-	gpio_direction_output(IMX_GPIO_NR(1, 8) , 1);
-
-	return 0;
+	gpio_direction_output(IMX_GPIO_NR(1, 8), 1);
 }
-#else
-static inline int setup_lcd(void) { return 0; }
+
+struct display_info_t const displays[] = {
+	{
+		.bus = MX6UL_LCDIF1_BASE_ADDR,
+		.addr = 0,
+		.pixfmt = 16,
+		.detect = NULL,
+		.enable = do_enable_parallel_lcd,
+		.mode = {
+			.name = "MYIR-LCD-4.3-480x272",
+			.xres = 480,
+			.yres = 272,
+			.pixclock = 108695,
+			.left_margin = 8,
+			.right_margin = 4,
+			.upper_margin = 2,
+			.lower_margin = 4,
+			.hsync_len = 41,
+			.vsync_len = 10,
+			.sync = 0,
+			.vmode = FB_VMODE_NONINTERLACED
+		}
+	}, {
+		.bus = MX6UL_LCDIF1_BASE_ADDR,
+		.addr = 0,
+		.pixfmt = 16,
+		.detect = NULL,
+		.enable = do_enable_parallel_lcd,
+		.mode = {
+			.name = "MYIR-LCD-7-800x480",
+			.xres = 800,
+			.yres = 480,
+			.pixclock = 10119,
+			.left_margin = 210,
+			.right_margin = 46,
+			.upper_margin = 22,
+			.lower_margin = 23,
+			.hsync_len = 20,
+			.vsync_len = 3,
+			.sync = 1,
+			.vmode = FB_VMODE_NONINTERLACED
+		}
+	},
+};
+
+size_t display_count = ARRAY_SIZE(displays);
+
+static void setup_lcd_hw(void)
+{
+	enable_lcdif_clock(MX6UL_LCDIF1_BASE_ADDR, 1);
+
+	imx_iomux_v3_setup_multiple_pads(lcd_pads, ARRAY_SIZE(lcd_pads));
+
+	gpio_request(IMX_GPIO_NR(5, 9), "lcd reset");
+	gpio_direction_output(IMX_GPIO_NR(5, 9), 0);
+	udelay(500);
+	gpio_direction_output(IMX_GPIO_NR(5, 9), 1);
+
+	gpio_request(IMX_GPIO_NR(1, 8), "backlight");
+	gpio_direction_output(IMX_GPIO_NR(1, 8), 1);
+}
 #endif
 
 int board_early_init_f(void)
 {
+#ifdef CONFIG_VIDEO_MXS
+	/* Power on LCD before video init */
+	imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
+	gpio_request(IMX_GPIO_NR(3, 4), "power");
+	gpio_direction_output(IMX_GPIO_NR(3, 4), 1);
+#endif
+
 	return 0;
 }
 
@@ -318,6 +411,13 @@ int board_early_init_r(void)
 
 int board_init(void)
 {
+#ifdef CONFIG_VIDEO_MXS
+	/* LCD Power (also enabled in board_early_init_f) */
+	imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
+	gpio_request(IMX_GPIO_NR(3, 4), "power");
+	gpio_direction_output(IMX_GPIO_NR(3, 4), 1);
+#endif
+
 	/* Address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
 
@@ -331,6 +431,10 @@ int board_init(void)
 
 #ifdef CONFIG_NAND_MXS
 	setup_gpmi_nand();
+#endif
+
+#ifdef CONFIG_VIDEO_MXS
+	setup_lcd_hw();
 #endif
 
 	return 0;
@@ -371,13 +475,15 @@ int board_late_init(void)
     }
 #endif
 
-	setup_lcd();
-
 #ifdef CONFIG_ENV_IS_IN_MMC
 	board_late_mmc_env_init();
 #endif
 
 	set_wdog_reset((struct wdog_regs *)WDOG1_BASE_ADDR);
+
+#ifdef CONFIG_VIDEO_MXS
+	setup_lcd_hw();
+#endif
 
 	return 0;
 }

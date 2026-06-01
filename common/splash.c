@@ -101,8 +101,16 @@ void splash_get_pos(int *x, int *y)
 {
 	char *s = env_get("splashpos");
 
-	if (!CONFIG_IS_ENABLED(SPLASH_SCREEN_ALIGN) || !s)
+	if (!CONFIG_IS_ENABLED(SPLASH_SCREEN_ALIGN))
 		return;
+
+	if (!s) {
+		if (CONFIG_IS_ENABLED(SPLASH_DEFAULT_CENTER)) {
+			*x = BMP_ALIGN_CENTER;
+			*y = BMP_ALIGN_CENTER;
+		}
+		return;
+	}
 
 	if (s[0] == 'm')
 		*x = BMP_ALIGN_CENTER;
@@ -171,8 +179,10 @@ int splash_display(void)
 
 	addr = hextoul(s, NULL);
 	ret = splash_screen_prepare();
-	if (ret)
+	if (ret) {
+		printf("Splash: prepare failed (%d)\n", ret);
 		return ret;
+	}
 
 	splash_get_pos(&x, &y);
 
