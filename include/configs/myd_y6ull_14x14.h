@@ -122,11 +122,14 @@
 	"splashpos=m,m\0" \
 	MYD_MMCBOOT_LINE \
 	"mmcpart=1\0" \
+	"bootslot=dualA\0" \
+	"mmcroot_a=/dev/mmcblk1p2 rootwait rw\0" \
+	"mmcroot_b=/dev/mmcblk1p4 rootwait rw\0" \
 	"mmcroot=/dev/mmcblk0p2 rootwait rw\0" \
 	"mmcautodetect=yes\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " BOOTARGS_EARLYCON \
 		BOOTARGS_CMA_SIZE \
-		"root=${mmcroot}\0" \
+		"root=${mmcroot} bootslot=${bootslot}\0" \
 	"loadbootscript=" \
 		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
@@ -135,6 +138,7 @@
 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
 	"loadtee=fatload mmc ${mmcdev}:${mmcpart} ${tee_addr} ${tee_file}\0" \
 	"mmcboot=echo Booting from mmc ...; " \
+		"run select_bootslot; " \
 		"run mmcargs; " \
 		"if test ${tee} = yes; then " \
 			"run loadfdt; run loadtee; bootm ${tee_addr} - ${fdt_addr}; " \
@@ -153,6 +157,25 @@
 				"bootz; " \
 			"fi; " \
 		"fi;\0" \
+	"select_bootslot=" \
+		"if test ${mmcdev} = 1; then " \
+			"if test ${bootslot} = dualA; then " \
+				"setenv mmcroot ${mmcroot_a}; " \
+			"else " \
+				"setenv mmcroot ${mmcroot_b}; " \
+			"fi; " \
+		"fi;\0" \
+	"switch_bootslot=" \
+		"if test ${mmcdev} = 1; then " \
+			"if test ${bootslot} = dualA; then " \
+				"setenv bootslot dualB; " \
+				"setenv mmcroot ${mmcroot_b}; " \
+			"else " \
+				"setenv bootslot dualA; " \
+				"setenv mmcroot ${mmcroot_a}; " \
+			"fi; saveenv; " \
+		"fi;\0" \
+	"altbootcmd=run switch_bootslot; run bootcmd\0" \
 	MYD_NAND_ENV_STRINGS \
 	"netargs=setenv bootargs console=${console},${baudrate} " BOOTARGS_EARLYCON \
 		BOOTARGS_CMA_SIZE \
