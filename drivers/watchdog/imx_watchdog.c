@@ -29,6 +29,15 @@ static void imx_watchdog_expire_now(struct watchdog_regs *wdog, bool ext_reset)
 	else
 		wcr |= WCR_WDA; /* do not assert external reset */
 
+	/*
+	 * On i.MX6UL/ULL, the WCR register is write-once after WDE is
+	 * set.  If the watchdog was already started (WDE=1), the write
+	 * below would be ignored and the original timeout (e.g. 60 s)
+	 * would remain.  Clear WDE first so that the following write
+	 * actually takes effect and produces a near-immediate reset.
+	 */
+	writew(0, &wdog->wcr);
+
 	/* Write 3 times to ensure it works, due to IMX6Q errata ERR004346 */
 	writew(wcr, &wdog->wcr);
 	writew(wcr, &wdog->wcr);
