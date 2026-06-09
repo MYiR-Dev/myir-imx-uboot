@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0+
+﻿// SPDX-License-Identifier: GPL-2.0+
 /*
  * Copyright (C) 2016 Freescale Semiconductor, Inc.
  * Copyright 2017 NXP
@@ -230,11 +230,13 @@ static void setup_gpmi_nand(void)
 #endif
 
 #ifdef CONFIG_FEC_MXC
+
+
+
 static int setup_fec(void)
 {
 	struct iomuxc *const iomuxc_regs = (struct iomuxc *)IOMUXC_BASE_ADDR;
 	int ret;
-
 	/*
 	 * Use 50M anatop loopback REF_CLK1 for ENET1,
 	 * clear gpr1[13], set gpr1[17].
@@ -262,12 +264,12 @@ static int setup_fec(void)
 
 	enable_enet_clk(1);
 
+
 	return 0;
 }
 
 int board_phy_config(struct phy_device *phydev)
 {
-	phy_write(phydev, MDIO_DEVAD_NONE, 0x1f, 0x8190);
 
 	if (phydev->drv->config)
 		phydev->drv->config(phydev);
@@ -277,13 +279,7 @@ int board_phy_config(struct phy_device *phydev)
 #endif
 
 #ifdef CONFIG_VIDEO_MXS
-static iomux_v3_cfg_t const lcd_pwr_pads[] = {
-	MX6_PAD_LCD_RESET__GPIO3_IO04 | MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_GPIO1_IO08__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_GPIO1_IO09__GPIO1_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_SNVS_TAMPER2__GPIO5_IO02 | MUX_PAD_CTRL(NO_PAD_CTRL),
-	MX6_PAD_LCD_ENABLE__GPIO3_IO01 | MUX_PAD_CTRL(NO_PAD_CTRL),
-};
+
 
 static iomux_v3_cfg_t const lcd_pads[] = {
 	MX6_PAD_LCD_CLK__LCDIF_CLK | MUX_PAD_CTRL(LCD_PAD_CTRL),
@@ -307,7 +303,7 @@ static iomux_v3_cfg_t const lcd_pads[] = {
 	MX6_PAD_LCD_DATA14__LCDIF_DATA14 | MUX_PAD_CTRL(LCD_PAD_CTRL),
 	MX6_PAD_LCD_DATA15__LCDIF_DATA15 | MUX_PAD_CTRL(LCD_PAD_CTRL),
 	MX6_PAD_LCD_DATA16__LCDIF_DATA16 | MUX_PAD_CTRL(LCD_PAD_CTRL),
-	MX6_PAD_SNVS_TAMPER9__GPIO5_IO09 | MUX_PAD_CTRL(NO_PAD_CTRL),
+	MX6_PAD_LCD_RESET__GPIO3_IO04 | MUX_PAD_CTRL(NO_PAD_CTRL),
 	MX6_PAD_GPIO1_IO08__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
@@ -316,11 +312,10 @@ void do_enable_parallel_lcd(struct display_info_t const *dev)
 	enable_lcdif_clock(dev->bus, 1);
 
 	imx_iomux_v3_setup_multiple_pads(lcd_pads, ARRAY_SIZE(lcd_pads));
-
-	gpio_request(IMX_GPIO_NR(5, 9), "lcd reset");
-	gpio_direction_output(IMX_GPIO_NR(5, 9), 0);
-	udelay(500);
-	gpio_direction_output(IMX_GPIO_NR(5, 9), 1);
+	gpio_request(IMX_GPIO_NR(3, 4), "lcd reset");
+	gpio_direction_output(IMX_GPIO_NR(3, 4), 0);
+	udelay(5000);
+	gpio_direction_output(IMX_GPIO_NR(3, 4), 1);
 
 	gpio_request(IMX_GPIO_NR(1, 8), "backlight");
 	gpio_direction_output(IMX_GPIO_NR(1, 8), 1);
@@ -374,14 +369,15 @@ size_t display_count = ARRAY_SIZE(displays);
 
 static void setup_lcd_hw(void)
 {
+	
 	enable_lcdif_clock(MX6UL_LCDIF1_BASE_ADDR, 1);
 
 	imx_iomux_v3_setup_multiple_pads(lcd_pads, ARRAY_SIZE(lcd_pads));
 
-	gpio_request(IMX_GPIO_NR(5, 9), "lcd reset");
-	gpio_direction_output(IMX_GPIO_NR(5, 9), 0);
-	udelay(500);
-	gpio_direction_output(IMX_GPIO_NR(5, 9), 1);
+	gpio_request(IMX_GPIO_NR(3, 4), "lcd reset");
+	gpio_direction_output(IMX_GPIO_NR(3, 4), 0);
+	udelay(5000);
+	gpio_direction_output(IMX_GPIO_NR(3, 4), 1);
 
 	gpio_request(IMX_GPIO_NR(1, 8), "backlight");
 	gpio_direction_output(IMX_GPIO_NR(1, 8), 1);
@@ -390,12 +386,7 @@ static void setup_lcd_hw(void)
 
 int board_early_init_f(void)
 {
-#ifdef CONFIG_VIDEO_MXS
-	/* Power on LCD before video init */
-	imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
-	gpio_request(IMX_GPIO_NR(3, 4), "power");
-	gpio_direction_output(IMX_GPIO_NR(3, 4), 1);
-#endif
+
 
 	return 0;
 }
@@ -411,12 +402,6 @@ int board_early_init_r(void)
 
 int board_init(void)
 {
-#ifdef CONFIG_VIDEO_MXS
-	/* LCD Power (also enabled in board_early_init_f) */
-	imx_iomux_v3_setup_multiple_pads(lcd_pwr_pads, ARRAY_SIZE(lcd_pwr_pads));
-	gpio_request(IMX_GPIO_NR(3, 4), "power");
-	gpio_direction_output(IMX_GPIO_NR(3, 4), 1);
-#endif
 
 	/* Address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
@@ -437,6 +422,7 @@ int board_init(void)
 	setup_lcd_hw();
 #endif
 
+
 	return 0;
 }
 
@@ -455,6 +441,7 @@ int board_late_init(void)
 #ifdef CONFIG_CMD_BMODE
 	add_board_boot_modes(board_boot_modes);
 #endif
+
 
 	env_set("tee", "no");
 #ifdef CONFIG_IMX_OPTEE
