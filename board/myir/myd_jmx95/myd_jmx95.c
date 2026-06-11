@@ -561,7 +561,8 @@ int board_late_init(void)
                 }
         }
 #endif /* CONFIG_CMD_QB */
-
+	
+	env_set("u-boot_version", PLAIN_VERSION"("U_BOOT_DATE"-"U_BOOT_TIME")");
 	return 0;
 }
 
