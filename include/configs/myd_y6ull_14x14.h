@@ -158,6 +158,16 @@
 				"bootz; " \
 			"fi; " \
 		"fi;\0" \
+	"mmcfboot=echo Booting fitImage from mmc ...; " \
+		"setenv image fitImage; " \
+		"mmc dev ${mmcdev}; " \
+		"if mmc rescan; then " \
+			"if run loadimage; then " \
+				"run select_bootslot; " \
+				"run mmcargs; " \
+				"bootm ${loadaddr}; " \
+			"fi; " \
+		"fi;\0" \
 	"select_bootslot=" \
 		"if test ${mmcdev} = 1; then " \
 			"if test ${bootslot} = dualA; then " \
