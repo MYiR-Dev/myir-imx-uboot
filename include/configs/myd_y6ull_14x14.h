@@ -116,6 +116,8 @@
 	"tee_addr=0x84000000\0" \
 	"tee_file=undefined\0" \
 	"boot_fdt=try\0" \
+	"fit_config=\0" \
+	"boot_fit=try\0" \
 	"ip_dyn=yes\0" \
 	"panel=MYIR-LCD-7-800x480\0" \
 	"splashimage=0x8c000000\0" \
@@ -165,7 +167,11 @@
 			"if run loadimage; then " \
 				"run select_bootslot; " \
 				"run mmcargs; " \
-				"bootm ${loadaddr}; " \
+				"if test -n ${fit_config}; then " \
+					"bootm ${loadaddr}#${fit_config}; " \
+				"else " \
+					"bootm ${loadaddr}; " \
+				"fi; " \
 			"fi; " \
 		"fi;\0" \
 	"select_bootslot=" \
