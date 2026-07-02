@@ -178,17 +178,31 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 		}
 		break;
 	default:
-		printf("Not valid image format for Authentication, Please check\n");
-		return 1;
+		/* TEE may be raw binary or contained in fitImage;
+		 * skip standalone auth - fitImage HAB covers it */
+		break;
 	};
 
-	ret = bootz_setup(image_load_addr, &zi_start, &zi_end);
-	if (ret != 0)
-		return 1;
-
-	if (authenticate_image(image_load_addr, zi_end - zi_start) != 0) {
-		printf("Authenticate zImage Fail, Please check\n");
-		return 1;
+	switch (genimg_get_format((const void *)image_load_addr)) {
+#ifdef CONFIG_FIT
+	case IMAGE_FORMAT_FIT:
+		if (authenticate_image(image_load_addr,
+		    fit_get_size((const void *)image_load_addr)) != 0) {
+			printf("Authenticate FIT image Fail, Please check\n");
+			return 1;
+		}
+		break;
+#endif
+	default:
+		ret = bootz_setup(image_load_addr, &zi_start, &zi_end);
+		if (ret != 0)
+			return 1;
+		if (authenticate_image(image_load_addr,
+				       zi_end - zi_start) != 0) {
+			printf("Authenticate zImage Fail, Please check\n");
+			return 1;
+		}
+		break;
 	}
 
 #else
