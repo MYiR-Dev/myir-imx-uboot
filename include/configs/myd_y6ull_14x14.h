@@ -138,6 +138,7 @@
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \
 	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
+	"loadfitimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} fitImage-signed\0" \
 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
 	"loadtee=fatload mmc ${mmcdev}:${mmcpart} ${tee_addr} ${tee_file}\0" \
 	"mmcboot=echo Booting from mmc ...; " \
@@ -174,6 +175,20 @@
 				"fi; " \
 			"fi; " \
 		"fi;\0" \
+	"mmchabboot=echo Booting zImage with HAB+TEE ...; " \
+		"if hab_auth_img ${loadaddr} ${filesize} 0x800000; then " \
+			"run loadfdt; " \
+			"run loadtee; " \
+			"run select_bootslot; " \
+			"run mmcargs; " \
+			"bootm ${tee_addr} - ${fdt_addr}; " \
+		"else " \
+			"echo HAB authentication FAILED for kernel at ${loadaddr}; " \
+		"fi;\0" \
+	"mmchabfitboot=echo Booting fitImage with HAB+TEE ...; " \
+		"run select_bootslot; " \
+		"run mmcargs; " \
+		"bootm ${loadaddr};\0" \
 	"select_bootslot=" \
 		"if test ${mmcdev} = 1; then " \
 			"if test ${bootslot} = dualA; then " \
