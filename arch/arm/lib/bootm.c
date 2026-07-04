@@ -306,6 +306,11 @@ static void switch_to_el1(void)
 #endif
 
 /* Subcommand: GO */
+#ifdef CONFIG_BOOTM_OPTEE
+static bool tee_fit_loaded;
+static ulong tee_fit_entry;
+#endif
+
 static void boot_jump_linux(struct bootm_headers *images, int flag)
 {
 #ifdef CONFIG_ARM64
@@ -452,15 +457,12 @@ void boot_jump_vxworks(struct bootm_headers *images)
 }
 
 #ifdef CONFIG_BOOTM_OPTEE
-static bool tee_fit_loaded;
-static ulong tee_fit_entry;
 
 static void bootm_tee_loadable_handler(ulong image, size_t size)
 {
 	tee_fit_loaded = true;
 	tee_fit_entry = image;
-	debug("## TEE loadable loaded at 0x%lx, size 0x%lx
-", image, size);
+	debug("## TEE loadable loaded at 0x%lx, size 0x%lx\n", image, size);
 }
 U_BOOT_FIT_LOADABLE_HANDLER(IH_TYPE_TEE, bootm_tee_loadable_handler);
 #endif
