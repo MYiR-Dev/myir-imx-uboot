@@ -186,9 +186,13 @@
 			"echo HAB authentication FAILED for kernel at ${loadaddr}; " \
 		"fi;\0" \
 	"mmchabfitboot=echo Booting fitImage with HAB+TEE ...; " \
-		"run select_bootslot; " \
-		"run mmcargs; " \
-		"bootm ${loadaddr};\0" \
+		"if hab_auth_img ${loadaddr} ${filesize}; then " \
+			"run select_bootslot; " \
+			"run mmcargs; " \
+			"bootm ${loadaddr}; " \
+		"else " \
+			"echo HAB authentication FAILED for fitImage at ${loadaddr}; " \
+		"fi;\0" \
 	"select_bootslot=" \
 		"if test ${mmcdev} = 1; then " \
 			"if test ${bootslot} = dualA; then " \

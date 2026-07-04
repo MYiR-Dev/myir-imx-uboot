@@ -378,6 +378,10 @@ static void boot_jump_linux(struct bootm_headers *images, int flag)
 		r2 = gd->bd->bi_boot_params;
 
 	if (!fake) {
+#ifdef CONFIG_BOOTM_OPTEE
+		if (tee_fit_loaded)
+			kernel_entry = (void (*)(int, int, uint))tee_fit_entry;
+#endif
 #ifdef CONFIG_ARMV7_NONSEC
 		if (armv7_boot_nonsec()) {
 			armv7_init_nonsec();
@@ -446,4 +450,18 @@ void boot_jump_vxworks(struct bootm_headers *images)
 	/* ARM VxWorks requires device tree physical address to be passed */
 	((void (*)(void *))images->ep)(images->ft_addr);
 }
+
+#ifdef CONFIG_BOOTM_OPTEE
+static bool tee_fit_loaded;
+static ulong tee_fit_entry;
+
+static void bootm_tee_loadable_handler(ulong image, size_t size)
+{
+	tee_fit_loaded = true;
+	tee_fit_entry = image;
+	debug("## TEE loadable loaded at 0x%lx, size 0x%lx
+", image, size);
+}
+U_BOOT_FIT_LOADABLE_HANDLER(IH_TYPE_TEE, bootm_tee_loadable_handler);
+#endif
 #endif
