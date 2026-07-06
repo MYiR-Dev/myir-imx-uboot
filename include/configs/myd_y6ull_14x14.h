@@ -176,7 +176,7 @@
 			"fi; " \
 		"fi;\0" \
 	"mmchabboot=echo Booting zImage with HAB+TEE ...; " \
-		"if hab_auth_img ${loadaddr} ${filesize} 0x800000; then " \
+		"if hab_auth_img ${loadaddr} ${filesize} 0x1000000; then " \
 			"run loadfdt; " \
 			"run loadtee; " \
 			"run select_bootslot; " \

@@ -1026,8 +1026,23 @@ int authenticate_image(u32 ddr_start, u32 raw_image_size)
 	u32 ivt_offset;
 	size_t bytes;
 
-	ivt_offset = (raw_image_size + ALIGN_SIZE - 1) &
+#ifdef CONFIG_IMX_HAB_KERNEL_IVT_OFFSET
+	/*
+	 * When a fixed kernel IVT offset is configured (non-zero) and
+	 * the image is loaded at CONFIG_SYS_LOAD_ADDR, use that fixed
+	 * offset instead of calculating from raw image size. This is
+	 * needed when the zImage is padded (e.g. to 16MB) and IVT/CSF
+	 * are appended at that fixed offset.
+	 */
+	if (CONFIG_IMX_HAB_KERNEL_IVT_OFFSET != 0 &&
+	    ddr_start == CONFIG_SYS_LOAD_ADDR) {
+		ivt_offset = CONFIG_IMX_HAB_KERNEL_IVT_OFFSET;
+	} else
+#endif
+	{
+		ivt_offset = (raw_image_size + ALIGN_SIZE - 1) &
 					~(ALIGN_SIZE - 1);
+	}
 	bytes = ivt_offset + IVT_SIZE + CSF_PAD_SIZE;
 
 	return imx_hab_authenticate_image(ddr_start, bytes, ivt_offset);

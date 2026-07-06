@@ -105,6 +105,21 @@ config CSF_SIZE
 	  Define the maximum size for Command Sequence File (CSF) binary
 	  this information is used to define the image boot data.
 
+config IMX_HAB_KERNEL_IVT_OFFSET
+	hex "Fixed IVT offset for kernel zImage (0 to disable)"
+	depends on IMX_HAB
+	default 0x0
+	help
+	  When the kernel zImage is signed with IVT at a fixed offset
+	  (e.g. padded to 16MB), set this to that offset. This tells
+	  authenticate_image() to look for the IVT at loadaddr + offset
+	  instead of calculating it from the raw zImage size.
+
+	  Example: 0x1000000 for 16MB padding (CONFIG_SYS_LOAD_ADDR + 16MB)
+
+	  Set to 0 to keep the default behaviour (IVT immediately after
+	  the raw image, aligned to 4K).
+
 config CMD_QB
 	bool "Support the 'qb' command"
 	default y
