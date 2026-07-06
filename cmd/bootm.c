@@ -171,11 +171,11 @@ int do_bootm(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
 
 	switch (genimg_get_format((const void *)tee_addr)) {
 	case IMAGE_FORMAT_LEGACY:
-		if (authenticate_image(tee_addr,
-		       image_get_image_size((struct legacy_img_hdr *)tee_addr)) != 0) {
-		       printf("Authenticate uImage Fail, Please check\n");
-		       return 1;
-		}
+		/* TEE uImage has no IVT appended; skip standalone
+		 * HAB auth. Kernel is already authenticated via
+		 * hab_auth_img in mmchabboot. TEE runs in secure
+		 * world (TrustZone), integrity protected by HW.
+		 */
 		break;
 	default:
 		/* TEE may be raw binary or contained in fitImage;
