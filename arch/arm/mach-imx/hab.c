@@ -627,6 +627,21 @@ static int do_authenticate_image(struct cmd_tbl *cmdtp, int flag, int argc,
 	else
 		ivt_offset = hextoul(argv[3], NULL);
 
+#ifdef CONFIG_IMX_HAB_KERNEL_IVT_OFFSET
+	/*
+	 * When a fixed kernel IVT offset is configured (non-zero) and
+	 * the user explicitly passed an ivt_offset via argv[3], the
+	 * 'length' parameter is typically the raw zImage file
+	 * size, not the total signed image size.  Adjust to cover the
+	 * full region: ivt_offset + IVT + CSF, so that U-Boot's
+	 * pre-checks and the ROM's authentication range both
+	 * include the signed structures appended beyond the raw
+	 * kernel.
+	 */
+	if (CONFIG_IMX_HAB_KERNEL_IVT_OFFSET != 0 && argc == 4 && addr == CONFIG_SYS_LOAD_ADDR)
+		length = ivt_offset + IVT_SIZE + CSF_PAD_SIZE;
+#endif
+
 	rcode = imx_hab_authenticate_image(addr, length, ivt_offset);
 	if (rcode == 0)
 		rcode = CMD_RET_SUCCESS;
