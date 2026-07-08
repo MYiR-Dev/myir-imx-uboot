@@ -108,6 +108,8 @@
 	TEE_ENV \
 	"script=boot.scr\0" \
 	"image=zImage\0" \
+	"board_name=EVK\0" \
+        "board_rev=14X14\0" \
 	"console=ttymxc0\0" \
 	"fdt_high=0xffffffff\0" \
 	"initrd_high=0xffffffff\0" \
