@@ -31,6 +31,7 @@
 #include <asm/mach-imx/video.h>
 #include <linux/fb.h>
 #include "../common/pfuze.h"
+#include <timestamp.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -455,6 +456,8 @@ int board_late_init(void)
 		env_set("board_rev", "9X9");
 	else
 		env_set("board_rev", "14X14");
+
+	env_set("u-boot_version", PLAIN_VERSION"("U_BOOT_DATE"-"U_BOOT_TIME")");
 
 	if (is_cpu_type(MXC_CPU_MX6ULZ)) {
 		env_set("board_name", "ULZ-EVK");

@@ -13,6 +13,7 @@
 #include <linux/stringify.h>
 #include "mx6_common.h"
 #include <asm/mach-imx/gpio.h>
+#include <version.h>
 #include <env/nxp/imx_env.h>
 
 #define is_mx6ull_9x9_evk()	CONFIG_IS_ENABLED(TARGET_MX6ULL_9X9_EVK)
@@ -126,7 +127,6 @@
 	"splashpos=m,m\0" \
 	MYD_MMCBOOT_LINE \
 	"mmcpart=1\0" \
-	"bootslot=dualA\0" \
 	"mmcroot_a=/dev/mmcblk1p2 rootwait rw\0" \
 	"mmcroot_b=/dev/mmcblk1p4 rootwait rw\0" \
 	"mmcroot=/dev/mmcblk0p2 rootwait rw\0" \
@@ -134,12 +134,13 @@
 		"loglevel=7\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " BOOTARGS_EARLYCON \
 		BOOTARGS_CMA_SIZE \
-		"root=${mmcroot} bootslot=${bootslot} loglevel=${loglevel}\0" \
+		"root=${mmcroot} cur_slot=${bootslot} loglevel=${loglevel}\0" \
 	"loadbootscript=" \
 		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
 		"source\0" \
 	"loadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0" \
+	"loadfit=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} fitImage;\0" \
 	"loadfitimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} fitImage-signed\0" \
 	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
 	"loadtee=fatload mmc ${mmcdev}:${mmcpart} ${tee_addr} ${tee_file}\0" \
@@ -177,24 +178,30 @@
 				"fi; " \
 			"fi; " \
 		"fi;\0" \
-	"mmchabboot=echo Booting zImage with HAB+TEE ...; " \
-		"if hab_auth_img ${loadaddr} ${filesize} 0x1000000; then " \
-			"run loadfdt; " \
-			"run loadtee; " \
+	"mmchabboot=echo Booting zImage with HAB and TEE from mmc ...; " \
+		"run select_bootslot; " \
+		"run mmcargs; " \
+		"if test ${tee} = yes; then " \
+			"run loadfdt; run loadtee; bootm ${tee_addr} - ${fdt_addr}; " \
+		"else " \
+			"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
+				"if run loadfdt; then " \
+					"bootz ${loadaddr} - ${fdt_addr}; " \
+				"else " \
+					"if test ${boot_fdt} = try; then " \
+						"bootz; " \
+					"else " \
+						"echo WARN: Cannot load the DT; " \
+					"fi; " \
+				"fi; " \
+			"else " \
+				"bootz; " \
+			"fi; " \
+		"fi;\0" \
+	"mmchabfitboot=echo Booting fitImage with HAB and TEE from mmc ...; " \
 			"run select_bootslot; " \
 			"run mmcargs; " \
-			"bootm ${tee_addr} - ${fdt_addr}; " \
-		"else " \
-			"echo HAB authentication FAILED for kernel at ${loadaddr}; " \
-		"fi;\0" \
-	"mmchabfitboot=echo Booting fitImage with HAB+TEE ...; " \
-		"if hab_auth_img ${loadaddr} ${filesize}; then " \
-			"run select_bootslot; " \
-			"run mmcargs; " \
-			"bootm ${loadaddr}; " \
-		"else " \
-			"echo HAB authentication FAILED for fitImage at ${loadaddr}; " \
-		"fi;\0" \
+			"bootm ${loadaddr}; \0" \
 	"select_bootslot=" \
 		"if test ${mmcdev} = 1; then " \
 			"if test ${bootslot} = dualA; then " \
@@ -213,7 +220,6 @@
 				"setenv mmcroot ${mmcroot_a}; " \
 			"fi; saveenv; " \
 		"fi;\0" \
-	"altbootcmd=run switch_bootslot; run bootcmd\0" \
 	MYD_NAND_ENV_STRINGS \
 	"netargs=setenv bootargs console=${console},${baudrate} " BOOTARGS_EARLYCON \
 		BOOTARGS_CMA_SIZE \
@@ -271,7 +277,27 @@
 					"echo WARNING: Could not determine tee to use; " \
 				"fi; " \
 			"fi;\0" \
-
+		"bootslot=dualA\0" \
+		"u-boot_version=null\0" \
+		"usb_port=1\0" \
+		"post_opt=saveenv;\0" \
+		"adjustbootsource=if test ${bootslot} = dualA || test ${bootslot} = singlenormal; then run adjustbootsourceA; fi;" \
+		"if test ${bootslot} = dualB; then run adjustbootsourceB; fi\0" \
+		"altbootusb=echo Boot Fail! Get into usb fastboot download.;fastboot usb ${usb_port}\0" \
+		"altbootsingle=if test ${bootslot} = singlerescue; then run altbootusb; fi; if test ${bootslot} = singlenormal; then run swuboot; fi\0" \
+		"adjustbootsourceB=echo RootFs Slot B; setenv mmcpart 3; setenv mmcroot /dev/mmcblk${mmcdev}p4 rootwait rw\0" \
+		"adjustbootsourceA=echo RootFs Slot A; setenv mmcpart 1; setenv mmcroot /dev/mmcblk${mmcdev}p2 rootwait rw\0" \
+		"altbootRollbackB=echo Rolling back to slot dualB;setenv bootslot dualB;run post_opt;run bootcmd\0" \
+		"altbootRollbackA=echo Rolling back to slot dualA;setenv bootslot dualA;run post_opt;run bootcmd\0" \
+		"altbootdual=if test ${bootslot} = dualA ; then run altbootRollbackB; fi; if test ${bootslot} = dualB ; then run altbootRollbackA; fi;\0" \
+		"swuargs=setenv bootargs console=${console},${baudrate} earlycon=${earlycon},${baudrate} " \
+		"cur_slot=${bootslot} U-Boot_ver=${u-boot_version}\0"\
+		"loadswuimage=mmc read  ${loadaddr} 0x4000 0xF000\0" \
+		"loadswufdt=mmc read  ${fdt_addr} 0x13000 0x200\0" \
+		"loadswuramdisk=mmc read  ${initrd_addr} 0x15000 0x15000\0" \
+		"swuboot=echo swuboot ramdisk;run loadswuimage;run loadswufdt;run loadswuramdisk;run swuargs;bootz ${loadaddr} ${initrd_addr} ${fdt_addr}\0" \
+		"altbootcmd=if test ${bootslot} = singlerescue ||  test ${bootslot} = singlenormal; then run altbootsingle; fi;" \
+		"if test ${bootslot} = dualA ||  test ${bootslot} = dualB; then run altbootdual; fi\0"
 /* Miscellaneous configurable options */
 
 /* Physical Memory Map */
