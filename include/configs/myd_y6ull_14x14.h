@@ -131,7 +131,7 @@
 	"mmcroot_b=/dev/mmcblk1p4 rootwait rw\0" \
 	"mmcroot=/dev/mmcblk0p2 rootwait rw\0" \
 	"mmcautodetect=yes\0" \
-		"loglevel=7\0" \
+		"loglevel=3\0" \
 	"mmcargs=setenv bootargs console=${console},${baudrate} " BOOTARGS_EARLYCON \
 		BOOTARGS_CMA_SIZE \
 		"root=${mmcroot} cur_slot=${bootslot} loglevel=${loglevel}\0" \
