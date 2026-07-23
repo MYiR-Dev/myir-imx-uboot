@@ -218,13 +218,13 @@ u32 get_cpu_temp_grade(int *minc, int *maxc)
 			*maxc = 125;
 		} else if (val == TEMP_INDUSTRIAL) {
 			*minc = -40;
-			*maxc = 105;
+			*maxc = 120;
 		} else if (val == TEMP_EXTCOMMERCIAL) {
-			*minc = -20;
-			*maxc = 105;
+			*minc = -40;
+			*maxc = 120;
 		} else {
-			*minc = 0;
-			*maxc = 95;
+			*minc = -40;
+			*maxc = 120;
 		}
 	}
 	return val;
