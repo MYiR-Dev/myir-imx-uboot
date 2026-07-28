@@ -25,7 +25,6 @@
 #include <miiphy.h>
 #include <linux/delay.h>
 #include <mmc.h>
-#include <miiphy.h>
 #include <power/pmic.h>
 #include <power/pfuze3000_pmic.h>
 #include <asm/mach-imx/video.h>
@@ -308,66 +307,6 @@ static iomux_v3_cfg_t const lcd_pads[] = {
 	MX6_PAD_GPIO1_IO08__GPIO1_IO08 | MUX_PAD_CTRL(NO_PAD_CTRL),
 };
 
-void do_enable_parallel_lcd(struct display_info_t const *dev)
-{
-	enable_lcdif_clock(dev->bus, 1);
-
-	imx_iomux_v3_setup_multiple_pads(lcd_pads, ARRAY_SIZE(lcd_pads));
-	gpio_request(IMX_GPIO_NR(3, 4), "lcd reset");
-	gpio_direction_output(IMX_GPIO_NR(3, 4), 0);
-	udelay(5000);
-	gpio_direction_output(IMX_GPIO_NR(3, 4), 1);
-
-	gpio_request(IMX_GPIO_NR(1, 8), "backlight");
-	gpio_direction_output(IMX_GPIO_NR(1, 8), 1);
-}
-
-struct display_info_t const displays[] = {
-	{
-		.bus = MX6UL_LCDIF1_BASE_ADDR,
-		.addr = 0,
-		.pixfmt = 16,
-		.detect = NULL,
-		.enable = do_enable_parallel_lcd,
-		.mode = {
-			.name = "MYIR-LCD-4.3-480x272",
-			.xres = 480,
-			.yres = 272,
-			.pixclock = 108695,
-			.left_margin = 8,
-			.right_margin = 4,
-			.upper_margin = 2,
-			.lower_margin = 4,
-			.hsync_len = 41,
-			.vsync_len = 10,
-			.sync = 0,
-			.vmode = FB_VMODE_NONINTERLACED
-		}
-	}, {
-		.bus = MX6UL_LCDIF1_BASE_ADDR,
-		.addr = 0,
-		.pixfmt = 16,
-		.detect = NULL,
-		.enable = do_enable_parallel_lcd,
-		.mode = {
-			.name = "MYIR-LCD-7-800x480",
-			.xres = 800,
-			.yres = 480,
-			.pixclock = 10119,
-			.left_margin = 210,
-			.right_margin = 46,
-			.upper_margin = 22,
-			.lower_margin = 23,
-			.hsync_len = 20,
-			.vsync_len = 3,
-			.sync = 1,
-			.vmode = FB_VMODE_NONINTERLACED
-		}
-	},
-};
-
-size_t display_count = ARRAY_SIZE(displays);
-
 static void setup_lcd_hw(void)
 {
 	
@@ -385,10 +324,48 @@ static void setup_lcd_hw(void)
 }
 #endif
 
+/* OV2659 camera: reset + powerdown */
+static iomux_v3_cfg_t const ov2659_pads[] = {
+	MX6_PAD_SNVS_TAMPER3__GPIO5_IO03 | MUX_PAD_CTRL(NO_PAD_CTRL), /* OV2659 reset */
+	MX6_PAD_SNVS_TAMPER4__GPIO5_IO04 | MUX_PAD_CTRL(NO_PAD_CTRL), /* OV2659 powerdown */
+};
+
+static void setup_ov2659_reset(void)
+{
+	imx_iomux_v3_setup_multiple_pads(ov2659_pads,
+					 ARRAY_SIZE(ov2659_pads));
+
+	/* de-assert powerdown (active high) — bring chip out of power-down */
+	gpio_request(IMX_GPIO_NR(5, 4), "ov2659 pwrdn");
+	gpio_direction_output(IMX_GPIO_NR(5, 4), 0);
+
+	/* reset pulse (active low) */
+	gpio_request(IMX_GPIO_NR(5, 3), "ov2659 reset");
+	gpio_direction_output(IMX_GPIO_NR(5, 3), 0);
+	udelay(5000);
+	gpio_direction_output(IMX_GPIO_NR(5, 3), 1);
+}
+
+/* FT5x06 touch: reset */
+static iomux_v3_cfg_t const ft5x06_pads[] = {
+	MX6_PAD_SNVS_TAMPER2__GPIO5_IO02 | MUX_PAD_CTRL(NO_PAD_CTRL), /* FT5x06 reset */
+};
+
+static void setup_ft5x06_reset(void)
+{
+	imx_iomux_v3_setup_multiple_pads(ft5x06_pads,
+					 ARRAY_SIZE(ft5x06_pads));
+
+	/* reset pulse (active low) */
+	gpio_request(IMX_GPIO_NR(5, 2), "ft5x06 reset");
+	gpio_direction_output(IMX_GPIO_NR(5, 2), 0);
+	mdelay(10);
+	gpio_direction_output(IMX_GPIO_NR(5, 2), 1);
+	mdelay(50);
+}
+
 int board_early_init_f(void)
 {
-
-
 	return 0;
 }
 
@@ -423,6 +400,8 @@ int board_init(void)
 	setup_lcd_hw();
 #endif
 
+	setup_ov2659_reset();
+	setup_ft5x06_reset();
 
 	return 0;
 }
@@ -474,6 +453,9 @@ int board_late_init(void)
 #ifdef CONFIG_VIDEO_MXS
 	setup_lcd_hw();
 #endif
+
+	setup_ov2659_reset();
+	setup_ft5x06_reset();
 
 	return 0;
 }
