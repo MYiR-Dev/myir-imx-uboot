@@ -1,0 +1,15 @@
+if TARGET_MYD_JS8MPQ
+
+config SYS_BOARD
+	default "myd-js8mpq"
+
+config SYS_VENDOR
+	default "myir"
+
+config SYS_CONFIG_NAME
+	default "myd-js8mpq"
+
+config IMX_CONFIG
+	default "board/myir/myd-js8mpq/imximage-8mp-lpddr4.cfg"
+
+endif
