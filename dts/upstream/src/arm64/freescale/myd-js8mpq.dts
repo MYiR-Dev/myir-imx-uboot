@@ -388,6 +388,9 @@
 	pinctrl-0 = <&pinctrl_fec>;
 	phy-mode = "rgmii-id";
 	phy-handle = <&ethphy1>;
+	phy-reset-gpios = <&gpio4 2 GPIO_ACTIVE_HIGH>;
+	phy-reset-duration = <20>;
+	phy-reset-post-delay = <100>;
 	fsl,magic-packet;
 	status = "okay";
 
@@ -399,9 +402,6 @@
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <7>;
 			eee-broken-1000t;
-			reset-gpios = <&gpio4 2 GPIO_ACTIVE_LOW>;
-			reset-assert-us = <10000>;
-			reset-deassert-us = <80000>;
 			realtek,clkout-disable;
 		};
 	};
