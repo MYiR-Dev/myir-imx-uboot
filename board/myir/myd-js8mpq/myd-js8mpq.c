@@ -44,6 +44,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define MYIR_EEPROM_ADDR	0x50
 #define MYIR_EEPROM_ADDR_LEN	2
 #define MYIR_EEPROM_CRC_INIT	0x12345678
+#define MYIR_USB2_POWER_GPIO	IMX_GPIO_NR(1, 14)
 
 struct myir_eeprom_data {
 	u32 crc32;
@@ -61,6 +62,25 @@ static iomux_v3_cfg_t const uart_pads[] = {
 static iomux_v3_cfg_t const wdog_pads[] = {
 	MX8MP_PAD_GPIO1_IO02__WDOG1_WDOG_B  | MUX_PAD_CTRL(WDOG_PAD_CTRL),
 };
+
+static iomux_v3_cfg_t const usb2_power_pads[] = {
+	MX8MP_PAD_GPIO1_IO14__GPIO1_IO14 | MUX_PAD_CTRL(PAD_CTL_DSE6),
+};
+
+static int setup_usb2_power(bool enable)
+{
+	int ret;
+
+	imx_iomux_v3_setup_multiple_pads(usb2_power_pads,
+					 ARRAY_SIZE(usb2_power_pads));
+	ret = gpio_request(MYIR_USB2_POWER_GPIO, "usb2_power");
+	if (ret && ret != -EBUSY)
+		return ret;
+	ret = gpio_direction_output(MYIR_USB2_POWER_GPIO, enable);
+	if (!ret)
+		mdelay(enable ? 150 : 100);
+	return ret;
+}
 
 #ifdef CONFIG_NAND_MXS
 
@@ -179,6 +199,24 @@ static int myir_set_data_from_eeprom(void)
 	printf(">>>SN=%s\n", id.sn);
 	printf(">>>MAC0=%s\n", id.mac0);
 	printf(">>>MAC1=%s\n", id.mac1);
+
+	return 0;
+}
+
+/*
+ * Report the actual populated DRAM size instead of the hardcoded maximum.
+ * SPL trains either the 4G (dual-rank) or 2G (single-rank) timing; probe the
+ * real amount so 2G and 4G boards run a single image. dram_init() /
+ * dram_init_banksize() (mach-imx) use this and the kernel /memory node is
+ * fixed up accordingly.
+ */
+int board_phys_sdram_size(phys_size_t *size)
+{
+	if (!size)
+		return -EINVAL;
+
+	*size = get_ram_size((void *)PHYS_SDRAM,
+			     (phys_size_t)PHYS_SDRAM_SIZE + PHYS_SDRAM_2_SIZE);
 
 	return 0;
 }
@@ -527,6 +565,8 @@ int board_usb_init(int index, enum usb_init_type init)
 #endif
 		return ret;
 	}
+	if (index == 1 && init == USB_INIT_HOST)
+		return setup_usb2_power(true);
 
 	return 0;
 }
@@ -541,6 +581,8 @@ int board_usb_cleanup(int index, enum usb_init_type init)
 #ifdef CONFIG_USB_TCPC
 		ret = tcpc_disable_src_vbus(&port1);
 #endif
+	} else if (index == 1 && init == USB_INIT_HOST) {
+		return setup_usb2_power(false);
 	}
 
 	return ret;
@@ -621,6 +663,8 @@ int board_init(void)
 
 int board_late_init(void)
 {
+	char *fdtfile_autoselect;
+
 #if CONFIG_IS_ENABLED(ENV_IS_IN_MMC)
 	board_late_mmc_env_init();
 #endif
@@ -631,6 +675,14 @@ int board_late_init(void)
 	env_set("board_name", "MYD-JS8MPQ");
 	env_set("board_rev", "iMX8MP");
 #endif
+
+	fdtfile_autoselect = env_get("fdtfile_autoselect");
+	if (!fdtfile_autoselect || strcmp(fdtfile_autoselect, "0")) {
+		if (gd->ram_size <= SZ_2G)
+			env_set("fdtfile", "myd-js8mpq-2g.dtb");
+		else
+			env_set("fdtfile", "myd-js8mpq.dtb");
+	}
 
 	return 0;
 }
