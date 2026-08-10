@@ -8,7 +8,9 @@
 #include <env.h>
 #include <errno.h>
 #include <init.h>
+#include <i2c.h>
 #include <miiphy.h>
+#include <net.h>
 #include <netdev.h>
 #include <linux/delay.h>
 #include <asm/global_data.h>
@@ -37,6 +39,19 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define UART_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_FSEL1)
 #define WDOG_PAD_CTRL	(PAD_CTL_DSE6 | PAD_CTL_ODE | PAD_CTL_PUE | PAD_CTL_PE)
+
+#define MYIR_EEPROM_BUS		1
+#define MYIR_EEPROM_ADDR	0x50
+#define MYIR_EEPROM_ADDR_LEN	2
+#define MYIR_EEPROM_CRC_INIT	0x12345678
+
+struct myir_eeprom_data {
+	u32 crc32;
+	char pn[48];
+	char sn[48];
+	char mac0[32];
+	char mac1[32];
+} __packed;
 
 static iomux_v3_cfg_t const uart_pads[] = {
 	MX8MP_PAD_UART2_RXD__UART2_DCE_RX | MUX_PAD_CTRL(UART_PAD_CTRL),
@@ -71,6 +86,102 @@ struct efi_capsule_update_info update_info = {
 };
 
 #endif /* EFI_HAVE_CAPSULE_SUPPORT */
+
+static u32 myir_crc32c(u32 crc, const u8 *buf, size_t len)
+{
+	while (len--) {
+		int bit;
+
+		crc ^= *buf++;
+		for (bit = 0; bit < 8; bit++)
+			crc = (crc >> 1) ^ ((crc & 1) ? 0x82f63b78 : 0);
+	}
+
+	return crc;
+}
+
+static void myir_trim_printable(char *str, size_t size)
+{
+	size_t i;
+
+	for (i = 0; i < size; i++) {
+		if (!str[i])
+			return;
+		if (str[i] < 0x20 || str[i] > 0x7e)
+			break;
+	}
+
+	if (size)
+		str[i < size ? i : size - 1] = '\0';
+}
+
+static int myir_set_ethaddr(const char *name, const char *mac)
+{
+	u8 ethaddr[ARP_HLEN];
+
+	string_to_enetaddr(mac, ethaddr);
+	if (is_valid_ethaddr(ethaddr)) {
+		env_set(name, mac);
+		return 0;
+	}
+
+	printf("id_eeprom: invalid %s %s\n", name, mac);
+	return -EINVAL;
+}
+
+static int myir_set_data_from_eeprom(void)
+{
+	struct myir_eeprom_data id;
+	struct udevice *dev;
+	u32 crc;
+	int ret;
+
+	ret = i2c_get_chip_for_busnum(MYIR_EEPROM_BUS, MYIR_EEPROM_ADDR,
+				      MYIR_EEPROM_ADDR_LEN, &dev);
+	if (ret) {
+		printf("id_eeprom: missing i2c%d@0x%02x (%d)\n",
+		       MYIR_EEPROM_BUS, MYIR_EEPROM_ADDR, ret);
+		return 0;
+	}
+
+	ret = i2c_set_chip_offset_len(dev, MYIR_EEPROM_ADDR_LEN);
+	if (ret) {
+		printf("id_eeprom: set offset len failed (%d)\n", ret);
+		return 0;
+	}
+
+	ret = dm_i2c_read(dev, 0, (u8 *)&id, sizeof(id));
+	if (ret) {
+		printf("id_eeprom: read failed (%d)\n", ret);
+		return 0;
+	}
+
+	crc = myir_crc32c(MYIR_EEPROM_CRC_INIT, (u8 *)id.pn,
+			  sizeof(id) - sizeof(id.crc32));
+	if (id.crc32 != crc) {
+		printf("id_eeprom: crc error, eeprom=0x%08x calc=0x%08x\n",
+		       id.crc32, crc);
+		return 0;
+	}
+
+	myir_trim_printable(id.pn, sizeof(id.pn));
+	myir_trim_printable(id.sn, sizeof(id.sn));
+	myir_trim_printable(id.mac0, sizeof(id.mac0));
+	myir_trim_printable(id.mac1, sizeof(id.mac1));
+
+	env_set("pn", id.pn);
+	env_set("sn", id.sn);
+	env_set("serial#", id.sn);
+	myir_set_ethaddr("ethaddr", id.mac0);
+	myir_set_ethaddr("eth1addr", id.mac1);
+
+	printf(">>>PN=%s\n", id.pn);
+	printf(">>>SN=%s\n", id.sn);
+	printf(">>>MAC0=%s\n", id.mac0);
+	printf(">>>MAC1=%s\n", id.mac1);
+
+	return 0;
+}
 
 int board_early_init_f(void)
 {
@@ -513,6 +624,8 @@ int board_late_init(void)
 #if CONFIG_IS_ENABLED(ENV_IS_IN_MMC)
 	board_late_mmc_env_init();
 #endif
+
+	myir_set_data_from_eeprom();
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 	env_set("board_name", "MYD-JS8MPQ");
