@@ -548,10 +548,15 @@ static int imx_tmu_bind(struct udevice *dev)
 		return 0;
 
 	pdata->zone_node = 1;
-	/* default alert/crit temps based on temp grade */
-	get_cpu_temp_grade(&minc, &maxc);
-	pdata->critical = maxc * 1000;
-	pdata->alert = (maxc - 10) * 1000;
+	if (IS_ENABLED(CONFIG_TARGET_MYD_JS8MPQ)) {
+		pdata->critical = 115000;
+		pdata->alert = 115000;
+	} else {
+		/* default alert/crit temps based on temp grade */
+		get_cpu_temp_grade(&minc, &maxc);
+		pdata->critical = maxc * 1000;
+		pdata->alert = (maxc - 10) * 1000;
+	}
 
 	node = ofnode_path("/thermal-zones");
 	ofnode_for_each_subnode(offset, node) {

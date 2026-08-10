@@ -799,6 +799,22 @@
 	status = "okay";
 };
 
+&cpu_alert0 {
+	temperature = <115000>;
+};
+
+&cpu_crit0 {
+	temperature = <115000>;
+};
+
+&soc_alert0 {
+	temperature = <115000>;
+};
+
+&soc_crit0 {
+	temperature = <115000>;
+};
+
 &xcvr {
 	#sound-dai-cells = <0>;
 	status = "okay";

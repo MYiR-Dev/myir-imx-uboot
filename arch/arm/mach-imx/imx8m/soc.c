@@ -1686,11 +1686,14 @@ usb_modify_speed:
 
 	cleanup_nodes_for_efi(blob);
 
-	if (fixup_thermal_trips(blob, "cpu-thermal"))
-		printf("Failed to update cpu-thermal trip(s)");
-	if (IS_ENABLED(CONFIG_IMX8MP) &&
-	    fixup_thermal_trips(blob, "soc-thermal"))
-		printf("Failed to update soc-thermal trip(s)");
+	/* MYD-JS8MPQ uses board-qualified 115C trips from its DTS. */
+	if (!IS_ENABLED(CONFIG_TARGET_MYD_JS8MPQ)) {
+		if (fixup_thermal_trips(blob, "cpu-thermal"))
+			printf("Failed to update cpu-thermal trip(s)");
+		if (IS_ENABLED(CONFIG_IMX8MP) &&
+		    fixup_thermal_trips(blob, "soc-thermal"))
+			printf("Failed to update soc-thermal trip(s)");
+	}
 
 	if (IS_ENABLED(CONFIG_DM_RNG) && !IS_ENABLED(CONFIG_IMX_ANDROID_GBL)) {
 		int ret = fdt_kaslrseed(blob, true);
