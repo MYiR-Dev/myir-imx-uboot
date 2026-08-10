@@ -9,5 +9,5 @@ obj-y += myd-js8mpq.o
 
 ifdef CONFIG_XPL_BUILD
 obj-y += spl.o
-obj-$(CONFIG_IMX8M_LPDDR4) += lpddr4_timing.o
+obj-$(CONFIG_IMX8M_LPDDR4) += lpddr4_timing_4g.o lpddr4_timing_2g.o
 endif

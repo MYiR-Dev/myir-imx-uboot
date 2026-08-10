@@ -56,9 +56,20 @@ int spl_board_boot_device(enum boot_device boot_dev_spl)
 #endif
 }
 
+/* Two LPDDR4 populations: 4G is dual-rank, 2G is single-rank. Try the 4G
+ * (dual-rank) timing first; on a 2G board the second-rank training fails and
+ * ddr_init() returns an error, so fall back to the 2G (single-rank) timing.
+ * The actual size is then probed by board_phys_sdram_size() (get_ram_size).
+ */
+extern struct dram_timing_info dram_timing_4g;
+extern struct dram_timing_info dram_timing_2g;
+
 void spl_dram_init(void)
 {
-	ddr_init(&dram_timing);
+	if (ddr_init(&dram_timing_4g)) {
+		printf("DDR: 4G (dual-rank) training failed, trying 2G\n");
+		ddr_init(&dram_timing_2g);
+	}
 }
 
 void spl_board_init(void)
