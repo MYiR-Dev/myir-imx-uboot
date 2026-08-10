@@ -311,9 +311,9 @@
 			compatible = "ethernet-phy-ieee802.3-c22";
 			reg = <5>;
 			eee-broken-1000t;
-			reset-gpios = <&gpio4 22 GPIO_ACTIVE_LOW>;
-			reset-assert-us = <10000>;
-			reset-deassert-us = <80000>;
+			reset-gpios = <&gpio4 3 GPIO_ACTIVE_HIGH>;
+			reset-assert-us = <15000>;
+			reset-deassert-us = <100000>;
 			realtek,clkout-disable;
 		};
 	};
@@ -830,7 +830,7 @@
 			MX8MP_IOMUXC_ENET_TD3__ENET_QOS_RGMII_TD3			0x16
 			MX8MP_IOMUXC_ENET_TX_CTL__ENET_QOS_RGMII_TX_CTL			0x16
 			MX8MP_IOMUXC_ENET_TXC__CCM_ENET_QOS_CLOCK_GENERATE_TX_CLK	0x16
-			MX8MP_IOMUXC_SAI2_RXC__GPIO4_IO22				0x10
+			MX8MP_IOMUXC_SAI1_RXD1__GPIO4_IO03				0x140
 		>;
 	};
 
