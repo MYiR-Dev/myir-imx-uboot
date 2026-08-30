@@ -1385,6 +1385,14 @@ config VIDEO_ADV7535
 	Say Y here if you want to enable support for ADI ADV7535
 	DSI to HDMI connector, currently only support 1920x1080.
 
+config VIDEO_LCD_MYIR_MIPI101C
+	bool "MYIR MIPI101C MIPI DSI panel"
+	depends on VIDEO && DM_GPIO
+	select VIDEO_MIPI_DSI
+	help
+	  Enable support for the MYIR MIPI101C 1200x1920 MIPI DSI panel,
+	  including its panel initialization commands and display timing setup.
+
 config VIDEO_LT8912B
 	bool "Lontium lt8912b MIPI DSI to HDMI connector"
 	depends on VIDEO

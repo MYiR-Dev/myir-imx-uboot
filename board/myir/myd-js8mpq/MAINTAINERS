@@ -4,3 +4,4 @@ S:	Maintained
 F:	board/myir/myd-js8mpq/
 F:	include/configs/myd-js8mpq.h
 F:	configs/myd-js8mpq_defconfig
+F:	drivers/video/myir-mipi101c.c

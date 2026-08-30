@@ -7,7 +7,7 @@
 #include "imx8mp-u-boot.dtsi"
 
 / {
-	model = "NXP i.MX8MPlus LPDDR4 EVK board";
+	model = "MYIR MYD-JS8MPQ board (MIPI DSI panel)";
 
 	chosen {
 		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200";
@@ -26,23 +26,48 @@
 		status = "okay";
 	};
 
-	rm67199_panel {
-		compatible = "raydium,rm67199";
+	dsi_backlight: backlight-dsi {
+		compatible = "pwm-backlight";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_mipi_dsi_en>;
-		reset-gpio = <&gpio1 8 GPIO_ACTIVE_LOW>;
+		pinctrl-0 = <&pinctrl_dsi_bl_en>;
+		pwms = <&pwm2 0 100000 0>;
+		brightness-levels = <0 8 16 32 48 64 80 96 112 128
+				     144 160 176 192 208 224 240 255>;
+		default-brightness-level = <14>;
+		enable-gpios = <&gpio5 29 GPIO_ACTIVE_HIGH>;
+	};
+
+	mipi101c_panel {
+		compatible = "myir,mipi101c-imx8mp";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_dsi_panel_reset &pinctrl_dsi_sel>;
+		reset-gpios = <&gpio3 24 GPIO_ACTIVE_LOW>;
+		mux-gpios = <&gpio_expander 10 GPIO_ACTIVE_HIGH>,
+			    <&gpio4 21 GPIO_ACTIVE_HIGH>;
+		backlight = <&dsi_backlight>;
 		dsi-lanes = <4>;
-		video-mode = <2>;	/* 0: burst mode
-					 * 1: non-burst mode with sync event
-					 * 2: non-burst mode with sync pulse
-					 */
-		panel-width-mm = <68>;
-		panel-height-mm = <121>;
+		video-mode = <2>;
+		panel-width-mm = <135>;
+		panel-height-mm = <216>;
 		status = "okay";
 
+		panel-timing {
+			clock-frequency = <165200000>;
+			hactive = <1200>;
+			hfront-porch = <228>;
+			hsync-len = <12>;
+			hback-porch = <20>;
+			vactive = <1920>;
+			vfront-porch = <3>;
+			vsync-len = <1>;
+			vback-porch = <5>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+		};
+
 		port {
-			rm67191_from_dsim: endpoint {
-				remote-endpoint = <&dsim_to_rm67191>;
+			mipi101c_from_dsim: endpoint {
+				remote-endpoint = <&dsim_to_mipi101c>;
 			};
 		};
 	};
@@ -191,18 +216,11 @@
 
 	/delete-node/ hdmi@3d;
 
-	adv_bridge: adv7535@3d {
-		compatible = "adi,adv7535";
-		reg = <0x3d>;
-		adi,addr-cec = <0x3c>;
-		adi,dsi-lanes = <4>;
-		status = "okay";
-
-		port {
-			adv7535_from_dsim: endpoint {
-				remote-endpoint = <&dsim_to_adv7535>;
-			};
-		};
+	gpio_expander: gpio@20 {
+		compatible = "nxp,pca9555";
+		reg = <0x20>;
+		gpio-controller;
+		#gpio-cells = <2>;
 	};
 };
 
@@ -299,6 +317,19 @@
 	status = "disabled";
 };
 
+&lcdif1 {
+	assigned-clocks = <&clk IMX8MP_VIDEO_PLL1>,
+			  <&clk IMX8MP_CLK_MEDIA_DISP1_PIX>,
+			  <&clk IMX8MP_CLK_MEDIA_AXI>,
+			  <&clk IMX8MP_CLK_MEDIA_APB>;
+	assigned-clock-parents = <0>,
+				 <&clk IMX8MP_VIDEO_PLL1_OUT>,
+				 <&clk IMX8MP_SYS_PLL2_1000M>,
+				 <&clk IMX8MP_SYS_PLL1_800M>;
+	assigned-clock-rates = <991200000>, <165200000>,
+			       <500000000>, <200000000>;
+};
+
 &mipi_dsi {
 	/delete-property/ assigned-clocks;
 	/delete-property/ assigned-clock-parents;
@@ -308,14 +339,10 @@
 		/delete-node/ port@1;
 
 		port@1 {
-			dsim_to_adv7535: endpoint {
-				remote-endpoint = <&adv7535_from_dsim>;
-			};
-		};
+			reg = <1>;
 
-		port@2 {
-			dsim_to_rm67191: endpoint {
-				remote-endpoint = <&rm67191_from_dsim>;
+			dsim_to_mipi101c: endpoint {
+				remote-endpoint = <&mipi101c_from_dsim>;
 			};
 		};
 	};
@@ -348,9 +375,21 @@
 };
 
 &iomuxc {
-	pinctrl_mipi_dsi_en: mipidsiengrp {
+	pinctrl_dsi_panel_reset: dsipanelresetgrp {
 		fsl,pins = <
-			MX8MP_IOMUXC_GPIO1_IO08__GPIO1_IO08	0x16
+			MX8MP_IOMUXC_SAI5_RXD3__GPIO3_IO24	0x140
+		>;
+	};
+
+	pinctrl_dsi_sel: dsiselgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SAI2_RXFS__GPIO4_IO21	0x140
+		>;
+	};
+
+	pinctrl_dsi_bl_en: dsiblengrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_UART4_TXD__GPIO5_IO29	0x140
 		>;
 	};
 
