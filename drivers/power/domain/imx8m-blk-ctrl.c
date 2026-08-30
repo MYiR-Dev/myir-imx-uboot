@@ -19,6 +19,11 @@
 #define BLK_CLK_EN	0x4
 #define BLK_MIPI_RESET_DIV	0x8 /* Mini/Nano/Plus DISPLAY_BLK_CTRL only */
 
+#define HDMI_RTX_RESET_CTL0	0x20
+#define HDMI_RTX_CLK_CTL0	0x40
+#define HDMI_RTX_CLK_CTL1	0x50
+#define HDMI_TX_CONTROL0	0x200
+
 #define DOMAIN_MAX_CLKS 4
 
 struct imx8m_blk_ctrl_domain {
@@ -48,7 +53,62 @@ struct imx8m_blk_ctrl_data {
 	int num_domains;
 	u32 bus_rst_mask;
 	u32 bus_clk_mask;
+	bool hdmi;
 };
+
+static void imx8mp_hdmi_blk_ctrl_enable(struct imx8m_blk_ctrl *priv,
+					ulong id)
+{
+	switch (id) {
+	case IMX8MP_HDMIBLK_PD_IRQSTEER:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL0, BIT(9));
+		setbits_le32(priv->base + HDMI_RTX_RESET_CTL0, BIT(16));
+		break;
+	case IMX8MP_HDMIBLK_PD_LCDIF:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL0,
+			     BIT(16) | BIT(17) | BIT(18) | BIT(19) | BIT(20));
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL1, BIT(11));
+		setbits_le32(priv->base + HDMI_RTX_RESET_CTL0,
+			     BIT(4) | BIT(5) | BIT(6));
+		setbits_le32(priv->base + HDMI_TX_CONTROL0, GENMASK(14, 12));
+		break;
+	case IMX8MP_HDMIBLK_PD_PVI:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL1, BIT(28));
+		setbits_le32(priv->base + HDMI_RTX_RESET_CTL0, BIT(22));
+		fallthrough;
+	case IMX8MP_HDMIBLK_PD_PAI:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL1, BIT(17));
+		break;
+	case IMX8MP_HDMIBLK_PD_TRNG:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL1, BIT(27) | BIT(30));
+		setbits_le32(priv->base + HDMI_RTX_RESET_CTL0, BIT(20));
+		break;
+	case IMX8MP_HDMIBLK_PD_HDMI_TX:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL0,
+			     BIT(2) | BIT(4) | BIT(5));
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL1,
+			     BIT(12) | BIT(13) | BIT(14) | BIT(15) | BIT(16) |
+			     BIT(18) | BIT(19) | BIT(20) | BIT(21));
+		setbits_le32(priv->base + HDMI_RTX_RESET_CTL0,
+			     BIT(7) | BIT(10) | BIT(11));
+		setbits_le32(priv->base + HDMI_TX_CONTROL0, BIT(1));
+		break;
+	case IMX8MP_HDMIBLK_PD_HDMI_TX_PHY:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL0, BIT(7));
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL1, BIT(22) | BIT(24));
+		setbits_le32(priv->base + HDMI_RTX_RESET_CTL0, BIT(12));
+		clrbits_le32(priv->base + HDMI_TX_CONTROL0, BIT(3));
+		break;
+	case IMX8MP_HDMIBLK_PD_HDCP:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL0, BIT(11));
+		break;
+	case IMX8MP_HDMIBLK_PD_HRV:
+		setbits_le32(priv->base + HDMI_RTX_CLK_CTL1,
+			     BIT(3) | BIT(4) | BIT(5));
+		setbits_le32(priv->base + HDMI_RTX_RESET_CTL0, BIT(15));
+		break;
+	}
+}
 
 static int imx8m_blk_ctrl_request(struct power_domain *power_domain)
 {
@@ -93,6 +153,8 @@ static int imx8m_blk_ctrl_power_on(struct power_domain *power_domain)
 	int ret;
 
 	debug("%s, id %lu\n", __func__, power_domain->id);
+	if (power_domain->id >= drv_data->num_domains)
+		return -EINVAL;
 
 	if (!priv->domains[power_domain->id].power_dev.dev)
 		return -ENODEV;
@@ -124,6 +186,9 @@ static int imx8m_blk_ctrl_power_on(struct power_domain *power_domain)
 
 	/* ungate clk */
 	setbits_le32(priv->base + BLK_CLK_EN, drv_data->domains[power_domain->id].clk_mask);
+
+	if (drv_data->hdmi)
+		imx8mp_hdmi_blk_ctrl_enable(priv, power_domain->id);
 
 	/* power up upstream GPC domain */
 	ret = power_domain_on(&priv->domains[power_domain->id].power_dev);
@@ -404,10 +469,75 @@ static const struct imx8m_blk_ctrl_data imx8mp_media_blk_ctl_dev_data = {
 	.bus_clk_mask = BIT(8),
 };
 
+static const struct imx8m_blk_ctrl_domain_data imx8mp_hdmi_blk_ctl_domain_data[] = {
+	[IMX8MP_HDMIBLK_PD_IRQSTEER] = {
+		.name = "hdmiblk-irqsteer",
+		.clk_names = (const char *[]){ "apb" },
+		.num_clks = 1,
+		.gpc_name = "irqsteer",
+	},
+	[IMX8MP_HDMIBLK_PD_LCDIF] = {
+		.name = "hdmiblk-lcdif",
+		.clk_names = (const char *[]){ "axi", "apb", "fdcc" },
+		.num_clks = 3,
+		.gpc_name = "lcdif",
+	},
+	[IMX8MP_HDMIBLK_PD_PAI] = {
+		.name = "hdmiblk-pai",
+		.clk_names = (const char *[]){ "apb" },
+		.num_clks = 1,
+		.gpc_name = "pai",
+	},
+	[IMX8MP_HDMIBLK_PD_PVI] = {
+		.name = "hdmiblk-pvi",
+		.clk_names = (const char *[]){ "apb" },
+		.num_clks = 1,
+		.gpc_name = "pvi",
+	},
+	[IMX8MP_HDMIBLK_PD_TRNG] = {
+		.name = "hdmiblk-trng",
+		.clk_names = (const char *[]){ "apb" },
+		.num_clks = 1,
+		.gpc_name = "trng",
+	},
+	[IMX8MP_HDMIBLK_PD_HDMI_TX] = {
+		.name = "hdmiblk-hdmi-tx",
+		.clk_names = (const char *[]){ "apb", "ref_266m", "fdcc" },
+		.num_clks = 3,
+		.gpc_name = "hdmi-tx",
+	},
+	[IMX8MP_HDMIBLK_PD_HDMI_TX_PHY] = {
+		.name = "hdmiblk-hdmi-tx-phy",
+		.clk_names = (const char *[]){ "apb", "ref_24m" },
+		.num_clks = 2,
+		.gpc_name = "hdmi-tx-phy",
+	},
+	[IMX8MP_HDMIBLK_PD_HDCP] = {
+		.name = "hdmiblk-hdcp",
+		.clk_names = (const char *[]){ "axi", "apb" },
+		.num_clks = 2,
+		.gpc_name = "hdcp",
+	},
+	[IMX8MP_HDMIBLK_PD_HRV] = {
+		.name = "hdmiblk-hrv",
+		.clk_names = (const char *[]){ "axi", "apb" },
+		.num_clks = 2,
+		.gpc_name = "hrv",
+	},
+};
+
+static const struct imx8m_blk_ctrl_data imx8mp_hdmi_blk_ctl_dev_data = {
+	.max_reg = 0x23c,
+	.domains = imx8mp_hdmi_blk_ctl_domain_data,
+	.num_domains = ARRAY_SIZE(imx8mp_hdmi_blk_ctl_domain_data),
+	.hdmi = true,
+};
+
 static const struct udevice_id imx8m_blk_ctrl_ids[] = {
 	{ .compatible = "fsl,imx8mm-disp-blk-ctrl", .data = (ulong)&imx8mm_disp_blk_ctl_dev_data },
 	{ .compatible = "fsl,imx8mn-disp-blk-ctrl", .data = (ulong)&imx8mn_disp_blk_ctl_dev_data },
 	{ .compatible = "fsl,imx8mp-media-blk-ctrl", .data = (ulong)&imx8mp_media_blk_ctl_dev_data },
+	{ .compatible = "fsl,imx8mp-hdmi-blk-ctrl", .data = (ulong)&imx8mp_hdmi_blk_ctl_dev_data },
 	{ }
 };
 

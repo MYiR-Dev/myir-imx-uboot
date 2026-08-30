@@ -52,6 +52,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define IMX8MN_MIPI_A53_DOMAIN			BIT(2)
 
 #define IMX8MP_HSIOMIX_A53_DOMAIN		BIT(19)
+#define IMX8MP_HDMI_PHY_A53_DOMAIN		BIT(17)
+#define IMX8MP_HDMIMIX_A53_DOMAIN		BIT(16)
 #define IMX8MP_MEDIAMIX_A53_DOMAIN		BIT(12)
 #define IMX8MP_USB2_PHY_A53_DOMAIN		BIT(5)
 #define IMX8MP_USB1_PHY_A53_DOMAIN		BIT(4)
@@ -98,6 +100,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define IMX8MN_MIPI_SW_Pxx_REQ			BIT(0)
 
 #define IMX8MP_HSIOMIX_Pxx_REQ			BIT(17)
+#define IMX8MP_HDMI_PHY_Pxx_REQ			BIT(15)
+#define IMX8MP_HDMIMIX_Pxx_REQ			BIT(14)
 #define IMX8MP_MEDIMIX_Pxx_REQ			BIT(10)
 #define IMX8MP_USB2_PHY_Pxx_REQ			BIT(3)
 #define IMX8MP_USB1_PHY_Pxx_REQ			BIT(2)
@@ -128,8 +132,10 @@ DECLARE_GLOBAL_DATA_PTR;
 #define IMX8MN_HSIO_HSK_PWRDNREQN		BIT(5)
 
 #define IMX8MP_MEDIAMIX_PWRDNACKN		BIT(30)
+#define IMX8MP_HDMIMIX_PWRDNACKN		BIT(29)
 #define IMX8MP_HSIOMIX_PWRDNACKN		BIT(28)
 #define IMX8MP_MEDIAMIX_PWRDNREQN		BIT(14)
+#define IMX8MP_HDMIMIX_PWRDNREQN		BIT(13)
 #define IMX8MP_HSIOMIX_PWRDNREQN		BIT(12)
 
 /*
@@ -168,12 +174,19 @@ DECLARE_GLOBAL_DATA_PTR;
 #define IMX8MP_PGC_USB1			14
 #define IMX8MP_PGC_USB2			15
 #define IMX8MP_PGC_MEDIAMIX		22
+#define IMX8MP_PGC_HDMIMIX		26
+#define IMX8MP_PGC_HDMI_PHY		27
 #define IMX8MP_PGC_HSIOMIX		29
 
 #define GPC_PGC_CTRL(n)			(0x800 + (n) * 0x40)
 #define GPC_PGC_SR(n)			(GPC_PGC_CTRL(n) + 0xc)
 
 #define GPC_PGC_CTRL_PCR		BIT(0)
+
+#define IMX8MP_HDMIMIX_BLK_CTRL_BASE	0x32fc0000
+#define IMX8MP_HDMIMIX_RESET_CTL0	0x20
+#define IMX8MP_HDMIMIX_CLK_CTL0		0x40
+#define IMX8MP_HDMIMIX_CLK_CTL1		0x50
 
 struct imx_pgc_regs {
 	u16 map;
@@ -496,6 +509,25 @@ static const struct imx_pgc_domain imx8mp_pgc_domains[19] = {
 		.pgc = BIT(IMX8MP_PGC_HSIOMIX),
 		.keep_clocks = true,
 	},
+
+	[IMX8MP_POWER_DOMAIN_HDMIMIX] = {
+		.bits = {
+			.pxx = IMX8MP_HDMIMIX_Pxx_REQ,
+			.map = IMX8MP_HDMIMIX_A53_DOMAIN,
+			.hskreq = IMX8MP_HDMIMIX_PWRDNREQN,
+			.hskack = IMX8MP_HDMIMIX_PWRDNACKN,
+		},
+		.pgc = BIT(IMX8MP_PGC_HDMIMIX),
+		.keep_clocks = true,
+	},
+
+	[IMX8MP_POWER_DOMAIN_HDMI_PHY] = {
+		.bits = {
+			.pxx = IMX8MP_HDMI_PHY_Pxx_REQ,
+			.map = IMX8MP_HDMI_PHY_A53_DOMAIN,
+		},
+		.pgc = BIT(IMX8MP_PGC_HDMI_PHY),
+	},
 };
 
 static const struct imx_pgc_regs imx8mp_pgc_regs = {
@@ -538,6 +570,21 @@ static int imx8m_power_domain_on(struct power_domain *power_domain)
 	/* delay for reset to propagate */
 	udelay(5);
 
+	/*
+	 * HDMIMIX requires its internal clocks while GPC performs memory
+	 * repair and the ADB400 power-up handshake. Linux uses GPC notifiers
+	 * for this ordering; mirror that bounded sequence here.
+	 */
+	if (IS_ENABLED(CONFIG_IMX8MP) &&
+	    pdata->resource_id == IMX8MP_POWER_DOMAIN_HDMIMIX) {
+		writel(0, IMX8MP_HDMIMIX_BLK_CTRL_BASE +
+		       IMX8MP_HDMIMIX_RESET_CTL0);
+		writel(0xffffffff, IMX8MP_HDMIMIX_BLK_CTRL_BASE +
+		       IMX8MP_HDMIMIX_CLK_CTL0);
+		writel(0x7ffff87e, IMX8MP_HDMIMIX_BLK_CTRL_BASE +
+		       IMX8MP_HDMIMIX_CLK_CTL1);
+	}
+
 	if (domain->bits.pxx) {
 		/* request the domain to power up */
 		setbits_le32(base + regs->pup, domain->bits.pxx);
@@ -566,6 +613,22 @@ static int imx8m_power_domain_on(struct power_domain *power_domain)
 	/* request the ADB400 to power up */
 	if (domain->bits.hskreq)
 		setbits_le32(base + regs->hsk, domain->bits.hskreq);
+
+	if (IS_ENABLED(CONFIG_IMX8MP) &&
+	    pdata->resource_id == IMX8MP_POWER_DOMAIN_HDMIMIX) {
+		udelay(20);
+		writel(0, IMX8MP_HDMIMIX_BLK_CTRL_BASE +
+		       IMX8MP_HDMIMIX_CLK_CTL0);
+		writel(0, IMX8MP_HDMIMIX_BLK_CTRL_BASE +
+		       IMX8MP_HDMIMIX_CLK_CTL1);
+		writel(0xffffffff, IMX8MP_HDMIMIX_BLK_CTRL_BASE +
+		       IMX8MP_HDMIMIX_RESET_CTL0);
+		writel(0xffffffff, IMX8MP_HDMIMIX_BLK_CTRL_BASE +
+		       IMX8MP_HDMIMIX_CLK_CTL0);
+		writel(0x7ffff87e, IMX8MP_HDMIMIX_BLK_CTRL_BASE +
+		       IMX8MP_HDMIMIX_CLK_CTL1);
+		udelay(5);
+	}
 
 	/* Disable reset clocks for all devices in the domain */
 	if (!domain->keep_clocks && pdata->clk.count)
