@@ -7,7 +7,11 @@
 #include "imx8mp-u-boot.dtsi"
 
 / {
+#ifdef CONFIG_VIDEO_IMX8MP_HDMI
+	model = "MYIR MYD-JS8MPQ board (native HDMI)";
+#else
 	model = "MYIR MYD-JS8MPQ board (MIPI DSI panel)";
+#endif
 
 	chosen {
 		bootargs = "console=ttymxc1,115200 earlycon=ec_imx6q,0x30890000,115200";
@@ -21,6 +25,7 @@
 
 	/delete-node/ hdmi-connector;
 
+#ifndef CONFIG_VIDEO_IMX8MP_HDMI
 	dsi_host: dsi-host {
 		compatible = "samsung,sec-mipi-dsi";
 		status = "okay";
@@ -71,6 +76,7 @@
 			};
 		};
 	};
+#endif
 
 	mcu_rdc {
 		compatible = "imx8m,mcu_rdc";
@@ -180,7 +186,20 @@
 };
 
 &gpio2 {
+#ifdef CONFIG_VIDEO_IMX8MP_HDMI
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hdmi_mux>;
+#endif
 	bootph-pre-ram;
+
+#ifdef CONFIG_VIDEO_IMX8MP_HDMI
+	hdmi-mux-sel-hog {
+		gpio-hog;
+		gpios = <10 GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "hdmi_mux_sel";
+	};
+#endif
 };
 
 &gpio3 {
@@ -313,6 +332,60 @@
 	assigned-clock-rates = <400000000>;
 };
 
+#ifdef CONFIG_VIDEO_IMX8MP_HDMI
+&lcdif3 {
+	status = "okay";
+
+	display-timings {
+		native-mode = <&timing_hdmi_1080p60>;
+
+		timing_hdmi_1080p60: timing0 {
+			clock-frequency = <148500000>;
+			hactive = <1920>;
+			vactive = <1080>;
+			hfront-porch = <88>;
+			hback-porch = <148>;
+			hsync-len = <44>;
+			vfront-porch = <4>;
+			vback-porch = <36>;
+			vsync-len = <5>;
+			hsync-active = <1>;
+			vsync-active = <1>;
+			de-active = <1>;
+		};
+	};
+};
+
+&lcdif1 {
+	status = "disabled";
+};
+
+&hdmi_pvi {
+	status = "okay";
+};
+
+&hdmi_tx {
+	status = "okay";
+	/* Power the external Samsung PHY before its MMIO is accessed. */
+	power-domains = <&hdmi_blk_ctrl IMX8MP_HDMIBLK_PD_HDMI_TX>,
+			<&hdmi_blk_ctrl IMX8MP_HDMIBLK_PD_HDMI_TX_PHY>;
+};
+
+&hdmi_tx_phy {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "disabled";
+	/delete-property/ assigned-clocks;
+	/delete-property/ assigned-clock-parents;
+	/delete-property/ assigned-clock-rates;
+
+	ports {
+		/delete-node/ port@1;
+	};
+};
+#else
 &lcdif3 {
 	status = "disabled";
 };
@@ -328,6 +401,18 @@
 				 <&clk IMX8MP_SYS_PLL1_800M>;
 	assigned-clock-rates = <991200000>, <165200000>,
 			       <500000000>, <200000000>;
+};
+
+&hdmi_pvi {
+	status = "disabled";
+};
+
+&hdmi_tx {
+	status = "disabled";
+};
+
+&hdmi_tx_phy {
+	status = "disabled";
 };
 
 &mipi_dsi {
@@ -347,6 +432,7 @@
 		};
 	};
 };
+#endif
 
 &usb3_phy0 {
 	fsl,phy-tx-vref-tune = <0xe>;
@@ -375,6 +461,14 @@
 };
 
 &iomuxc {
+#ifdef CONFIG_VIDEO_IMX8MP_HDMI
+	pinctrl_hdmi_mux: hdmimuxgrp {
+		fsl,pins = <
+			MX8MP_IOMUXC_SD1_RESET_B__GPIO2_IO10	0x819
+		>;
+	};
+#endif
+
 	pinctrl_dsi_panel_reset: dsipanelresetgrp {
 		fsl,pins = <
 			MX8MP_IOMUXC_SAI5_RXD3__GPIO3_IO24	0x140
