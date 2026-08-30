@@ -669,6 +669,20 @@ int board_late_init(void)
 	board_late_mmc_env_init();
 #endif
 
+#ifndef CONFIG_ANDROID_SUPPORT
+       /* Prefer the MMC device selected by the i.MX ROM during bootflow scan. */
+       switch (mmc_get_env_dev()) {
+       case 1:
+               env_set("boot_targets", "mmc1 mmc2 usb0");
+               break;
+       case 2:
+               env_set("boot_targets", "mmc2 mmc1 usb0");
+               break;
+       default:
+               break;
+       }
+#endif
+
 	myir_set_data_from_eeprom();
 
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
