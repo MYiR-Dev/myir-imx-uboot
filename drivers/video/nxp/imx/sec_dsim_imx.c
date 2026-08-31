@@ -79,6 +79,8 @@ static int imx_sec_dsim_set_backlight(struct udevice *dev, int percent)
 	if (ret) {
 		dev_err(dev, "panel %s enable backlight error %d\n",
 			priv->panel->name, ret);
+		/* panel init may already have attached and enabled the DSIM PLL */
+		dsi_host_disable(priv->dsi_host);
 		return ret;
 	}
 

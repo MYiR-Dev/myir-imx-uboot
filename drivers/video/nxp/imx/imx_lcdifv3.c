@@ -39,6 +39,7 @@ struct lcdifv3_priv {
 	u32 thres_high_mul;
 	u32 thres_high_div;
 	bool external_pixel_clock;
+	bool skip_pixel_clock_config;
 };
 
 static int lcdifv3_set_pix_fmt(struct lcdifv3_priv *priv, unsigned int format)
@@ -205,8 +206,8 @@ static void lcdifv3_init(struct udevice *dev,
 	struct lcdifv3_priv *priv = dev_get_priv(dev);
 	int ret;
 
-	/* LCDIF3 uses the native HDMI PHY as its pixel clock provider. */
-	if (!priv->external_pixel_clock)
+	/* Keep clocks supplied by HDMI or preconfigured through assigned-clocks. */
+	if (!priv->external_pixel_clock && !priv->skip_pixel_clock_config)
 		mxs_set_lcdclk(priv->reg_base, PS2KHZ(mode->pixclock));
 
 	writel(CTRL_SW_RESET, (ulong)(priv->reg_base + LCDIFV3_CTRL_CLR));
@@ -344,6 +345,7 @@ static int lcdifv3_video_probe(struct udevice *dev)
 		return -EINVAL;
 	}
 	priv->external_pixel_clock = dev_get_driver_data(dev);
+	priv->skip_pixel_clock_config = dev_read_bool(dev, "fsl,skip-lcdclk-config");
 
 	ret = lcdifv3_of_get_timings(dev, &timings);
 	if (ret)

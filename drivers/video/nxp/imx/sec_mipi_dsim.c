@@ -1275,6 +1275,7 @@ static int sec_mipi_dsim_host_attach(struct mipi_dsi_host *host,
 				   struct mipi_dsi_device *device)
 {
 	struct sec_mipi_dsim *dsi = host_to_dsi(host);
+	int ret;
 
 	if (!device->lanes || device->lanes > dsi->max_data_lanes) {
 		printf("invalid data lanes number\n");
@@ -1304,8 +1305,17 @@ static int sec_mipi_dsim_host_attach(struct mipi_dsi_host *host,
 	debug("lanes %u, channel %u, format 0x%x, mode_flags 0x%lx\n", dsi->lanes,
 		dsi->channel, dsi->format, dsi->mode_flags);
 
-	sec_mipi_dsim_bridge_clk_set(dsi);
-	sec_mipi_dsim_bridge_prepare(dsi);
+	ret = sec_mipi_dsim_bridge_clk_set(dsi);
+	if (ret)
+		return ret;
+
+	ret = sec_mipi_dsim_bridge_prepare(dsi);
+	if (ret) {
+		/* Do not leave the controller active after a failed attach. */
+		sec_mipi_dsim_disable_clkctrl(dsi);
+		sec_mipi_dsim_disable_pll(dsi);
+		return ret;
+	}
 
 	return 0;
 }

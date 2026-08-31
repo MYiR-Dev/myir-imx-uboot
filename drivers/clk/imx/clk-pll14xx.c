@@ -84,6 +84,8 @@ static const struct imx_pll14xx_rate_table imx_pll1416x_tbl[] = {
 
 const struct imx_pll14xx_rate_table imx_pll1443x_tbl[] = {
 	PLL_1443X_RATE(1039500000U, 173, 2, 1, 16384),
+	/* 24 MHz ref: 413 * 24 MHz / 5 / 2 = 991.2 MHz */
+	PLL_1443X_RATE(991200000U, 413, 5, 1, 0),
 	PLL_1443X_RATE(650000000U, 325, 3, 2, 0),
 	PLL_1443X_RATE(594000000U, 198, 2, 2, 0),
 	PLL_1443X_RATE(519750000U, 173, 2, 2, 16384),
