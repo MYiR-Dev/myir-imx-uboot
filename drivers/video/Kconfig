@@ -1031,6 +1031,14 @@ config SPLASH_SCREEN_ALIGN
 	  	=> vertically centered image
 	  	   at x = dspWidth - bmpWidth - 9
 
+config SPLASH_DEFAULT_CENTER
+	bool "Center the splash image by default"
+	depends on SPLASH_SCREEN_ALIGN
+	help
+	  Center the splash image horizontally and vertically when the
+	  splashpos environment variable is not set. An explicit splashpos
+	  value still overrides this default.
+
 config HIDE_LOGO_VERSION
 	bool "Hide the version information on the splash screen"
 	help
