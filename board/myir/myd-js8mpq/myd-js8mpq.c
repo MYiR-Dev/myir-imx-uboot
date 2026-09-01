@@ -693,9 +693,9 @@ int board_late_init(void)
 	fdtfile_autoselect = env_get("fdtfile_autoselect");
 	if (!fdtfile_autoselect || strcmp(fdtfile_autoselect, "0")) {
 		if (gd->ram_size <= SZ_2G)
-			env_set("fdtfile", "myd-js8mpq-2g.dtb");
+			env_set("fdtfile", "myd-js8mpq-hdmi-ov5640-2g.dtb");
 		else
-			env_set("fdtfile", "myd-js8mpq.dtb");
+			env_set("fdtfile", "myd-js8mpq-hdmi-ov5640.dtb");
 	}
 
 	return 0;
